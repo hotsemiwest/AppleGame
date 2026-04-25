@@ -1,0 +1,57 @@
+import { create } from 'zustand'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from '../lib/supabase'
+
+interface AuthState {
+  user: User | null
+  displayName: string | null
+  isLoading: boolean
+
+  initialize: () => void
+  signUp: (email: string, password: string, displayName: string) => Promise<void>
+  signIn: (email: string, password: string) => Promise<void>
+  signOut: () => Promise<void>
+}
+
+export const useAuthStore = create<AuthState>((set) => ({
+  user: null,
+  displayName: null,
+  isLoading: true,
+
+  initialize: () => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const user = session?.user ?? null
+      set({
+        user,
+        displayName: user?.user_metadata?.display_name ?? null,
+        isLoading: false,
+      })
+    })
+
+    supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user ?? null
+      set({
+        user,
+        displayName: user?.user_metadata?.display_name ?? null,
+      })
+    })
+  },
+
+  signUp: async (email, password, displayName) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { display_name: displayName } },
+    })
+    if (error) throw error
+  },
+
+  signIn: async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) throw error
+  },
+
+  signOut: async () => {
+    await supabase.auth.signOut()
+  },
+}))

@@ -6,9 +6,10 @@ const MEDALS = ['🥇', '🥈', '🥉']
 interface Props {
   highlightName?: string
   highlightScore?: number
+  onUserClick?: (entry: ScoreEntry) => void
 }
 
-export function Leaderboard({ highlightName, highlightScore }: Props) {
+export function Leaderboard({ highlightName, highlightScore, onUserClick }: Props) {
   const [scores, setScores] = useState<ScoreEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -44,7 +45,7 @@ export function Leaderboard({ highlightName, highlightScore }: Props) {
         const isMe =
           highlightName !== undefined &&
           highlightScore !== undefined &&
-          entry.name === highlightName &&
+          entry.display_name === highlightName &&
           entry.score === highlightScore
         return (
           <div
@@ -58,13 +59,24 @@ export function Leaderboard({ highlightName, highlightScore }: Props) {
             <span className="w-7 text-center flex-shrink-0 text-base">
               {MEDALS[i] ?? <span className="text-gray-400 font-bold">{i + 1}</span>}
             </span>
-            <span
-              className={`flex-1 font-semibold truncate ${
-                isMe ? 'text-yellow-300' : 'text-white'
-              }`}
-            >
-              {entry.name}
-            </span>
+            {onUserClick ? (
+              <button
+                onClick={() => onUserClick(entry)}
+                className={`flex-1 font-semibold truncate text-left hover:underline ${
+                  isMe ? 'text-yellow-300' : 'text-white'
+                }`}
+              >
+                {entry.display_name}
+              </button>
+            ) : (
+              <span
+                className={`flex-1 font-semibold truncate ${
+                  isMe ? 'text-yellow-300' : 'text-white'
+                }`}
+              >
+                {entry.display_name}
+              </span>
+            )}
             <span
               className={`font-black tabular-nums ${
                 isMe ? 'text-yellow-300' : 'text-white'

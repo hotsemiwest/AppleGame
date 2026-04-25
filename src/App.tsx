@@ -1,25 +1,24 @@
 import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
-import { StartScreen } from './components/StartScreen'
+import { useAuthStore } from './store/authStore'
 import { Header } from './components/Header'
 import { GameBoard } from './components/GameBoard'
 import { GameOverModal } from './components/GameOverModal'
+import { StartBoard } from './components/StartBoard'
 
-// Must match GameBoard constants: COLS * (TILE_SIZE + GAP) - GAP
 const BOARD_WIDTH = 916
 
 export default function App() {
   const { gamePhase, tick } = useGameStore()
+  const initialize = useAuthStore(state => state.initialize)
+
+  useEffect(() => { initialize() }, [initialize])
 
   useEffect(() => {
     if (gamePhase !== 'playing') return
     const id = setInterval(tick, 1000)
     return () => clearInterval(id)
   }, [gamePhase, tick])
-
-  if (gamePhase === 'start') {
-    return <StartScreen />
-  }
 
   return (
     <div
@@ -28,7 +27,7 @@ export default function App() {
     >
       <div className="board-scaler" style={{ width: BOARD_WIDTH }}>
         <Header />
-        <GameBoard />
+        {gamePhase === 'start' ? <StartBoard /> : <GameBoard />}
       </div>
 
       {gamePhase === 'ended' && <GameOverModal />}
