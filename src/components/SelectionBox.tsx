@@ -1,0 +1,89 @@
+import { forwardRef, useRef, useImperativeHandle } from 'react'
+import { NormalizedRect } from '../types/game'
+
+const TILE_SIZE = 52
+const GAP = 2
+const CELL = TILE_SIZE + GAP
+
+export interface SelectionBoxHandle {
+  show: (rect: NormalizedRect, sum: number) => void
+  hide: () => void
+}
+
+export const SelectionBox = forwardRef<SelectionBoxHandle>(function SelectionBox(_, ref) {
+  const boxRef = useRef<HTMLDivElement>(null)
+  const sumRef = useRef<HTMLSpanElement>(null)
+
+  useImperativeHandle(ref, () => ({
+    show(rect, sum) {
+      const el = boxRef.current
+      if (!el) return
+
+      const isExact = sum === 10
+      const isOver = sum > 10
+      const borderColor = isExact ? '#22c55e' : isOver ? '#ef4444' : '#3b82f6'
+      const bgColor = isExact
+        ? 'rgba(34,197,94,0.12)'
+        : isOver
+        ? 'rgba(239,68,68,0.10)'
+        : 'rgba(59,130,246,0.10)'
+
+      const x = rect.minCol * CELL
+      const y = rect.minRow * CELL
+      const w = (rect.maxCol - rect.minCol + 1) * CELL - GAP
+      const h = (rect.maxRow - rect.minRow + 1) * CELL - GAP
+
+      el.style.display = 'block'
+      el.style.transform = `translate(${x}px, ${y}px)`
+      el.style.width = `${w}px`
+      el.style.height = `${h}px`
+      el.style.borderColor = borderColor
+      el.style.background = bgColor
+
+      if (sumRef.current) {
+        sumRef.current.textContent = sum > 0 ? String(sum) : ''
+        sumRef.current.style.background = borderColor
+        sumRef.current.style.display = sum > 0 ? 'block' : 'none'
+      }
+    },
+
+    hide() {
+      if (boxRef.current) boxRef.current.style.display = 'none'
+    },
+  }))
+
+  return (
+    <div
+      ref={boxRef}
+      style={{
+        display: 'none',
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        borderRadius: 12,
+        border: '2.5px solid transparent',
+        zIndex: 10,
+        boxSizing: 'border-box',
+        pointerEvents: 'none',
+        willChange: 'transform',
+      }}
+    >
+      <span
+        ref={sumRef}
+        style={{
+          display: 'none',
+          position: 'absolute',
+          top: -24,
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderRadius: 9999,
+          padding: '2px 8px',
+          fontSize: 12,
+          fontWeight: 700,
+          color: 'white',
+          whiteSpace: 'nowrap',
+        }}
+      />
+    </div>
+  )
+})
