@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
-import { submitScore } from '../lib/supabase'
+import { submitScore, fetchProfile } from '../lib/supabase'
 import { Leaderboard } from './Leaderboard'
 import { AuthModal } from './AuthModal'
+import { ScoreChart, HistoryEntry } from './ScoreChart'
 
 type Phase = 'submitting' | 'leaderboard' | 'guest'
 
@@ -14,14 +15,31 @@ export function GameOverModal() {
   const [phase, setPhase] = useState<Phase>(user ? 'submitting' : 'guest')
   const [submittedName, setSubmittedName] = useState<string | undefined>()
   const [showAuth, setShowAuth] = useState(false)
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+
+  async function submitAndShowHistory(dn: string) {
+    const submittedAt = new Date().toISOString()
+    try { await submitScore(dn, score) } catch {}
+    try {
+      const profile = await fetchProfile()
+      const hist = profile.history
+      // DB 반영 타이밍 이슈 보완: 현재 게임 항목이 없으면 직접 추가
+      const hasCurrentEntry = hist.some(
+        h => h.score === score && new Date(h.played_at).getTime() >= Date.now() - 10_000
+      )
+      setHistory(hasCurrentEntry ? hist : [...hist, { score, played_at: submittedAt }])
+    } catch {
+      setHistory([{ score, played_at: submittedAt }])
+    }
+  }
 
   // 로그인 상태면 자동 제출
   useEffect(() => {
     if (phase !== 'submitting' || !displayName) return
-    submitScore(displayName, score)
-      .then(() => setSubmittedName(displayName))
-      .catch(() => {})
-      .finally(() => setPhase('leaderboard'))
+    submitAndShowHistory(displayName).then(() => {
+      setSubmittedName(displayName)
+      setPhase('leaderboard')
+    })
   }, [phase, displayName, score])
 
   // 게스트가 게임 오버 화면에서 로그인 성공 시 점수 제출
@@ -29,10 +47,8 @@ export function GameOverModal() {
     setShowAuth(false)
     const { displayName: dn } = useAuthStore.getState()
     if (!dn) return
-    try {
-      await submitScore(dn, score)
-      setSubmittedName(dn)
-    } catch {}
+    await submitAndShowHistory(dn)
+    setSubmittedName(dn)
     setPhase('leaderboard')
   }
 
@@ -92,13 +108,31 @@ export function GameOverModal() {
             </div>
           )}
 
-          {/* 랭킹 */}
+          {/* 랭킹 + 히스토리 */}
           {phase === 'leaderboard' && (
-            <div className="mb-4">
-              <p className="text-gray-400 text-xs uppercase tracking-widest text-center mb-2 font-semibold">
-                🏆 TOP 10
-              </p>
-              <Leaderboard highlightName={submittedName} highlightScore={score} />
+            <div className="mb-4 flex flex-col gap-4">
+              <div>
+                <p className="text-gray-400 text-xs uppercase tracking-widest text-center mb-2 font-semibold">
+                  🏆 TOP 10
+                </p>
+                <Leaderboard highlightName={submittedName} highlightScore={score} />
+              </div>
+              {history.length > 0 && (
+                <div>
+                  <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-2">
+                    점수 히스토리
+                  </p>
+                  <div
+                    className="rounded-2xl p-3"
+                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  >
+                    <ScoreChart history={history} />
+                  </div>
+                  <div className="text-xs text-gray-600 text-right mt-1.5">
+                    ★ 최고점 &nbsp;• 최근 {history.length}게임
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

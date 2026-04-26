@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../store/authStore'
 import { fetchProfile, fetchPublicProfile, ProfileData } from '../lib/supabase'
+import { ScoreChart } from './ScoreChart'
 
 interface Props {
   onClose: () => void
@@ -25,79 +26,6 @@ function rankColor(rank: number) {
   return '#6b7280'
 }
 
-// ─── SVG 꺾은 선 그래프 ───────────────────────────────────────────
-function ScoreChart({ history }: { history: { score: number; played_at: string }[] }) {
-  if (history.length === 0) {
-    return (
-      <div className="text-center text-gray-500 text-sm py-6">
-        플레이 기록이 없습니다
-      </div>
-    )
-  }
-
-  const W = 300, H = 110
-  const PL = 30, PR = 10, PT = 8, PB = 20
-  const chartW = W - PL - PR
-  const chartH = H - PT - PB
-
-  const scores = history.map(d => d.score)
-  const n = scores.length
-  const maxS = Math.max(...scores, 1)
-  const minS = Math.min(...scores, 0)
-  const range = maxS - minS || 1
-
-  const cx = (i: number) => PL + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW)
-  const cy = (s: number) => PT + chartH - ((s - minS) / range) * chartH
-
-  const pathD = scores
-    .map((s, i) => `${i === 0 ? 'M' : 'L'} ${cx(i).toFixed(1)} ${cy(s).toFixed(1)}`)
-    .join(' ')
-
-  const bestScore = Math.max(...scores)
-  const bestIdx = scores.lastIndexOf(bestScore)
-
-  const yTicks = Array.from(new Set([minS, Math.round((minS + maxS) / 2), maxS]))
-
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" style={{ display: 'block' }}>
-      {/* 가로 그리드 */}
-      {yTicks.map(s => (
-        <line key={s} x1={PL} x2={W - PR} y1={cy(s)} y2={cy(s)}
-          stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
-      ))}
-
-      {/* Y 축 레이블 */}
-      {yTicks.map(s => (
-        <text key={s} x={PL - 4} y={cy(s)} textAnchor="end" dominantBaseline="middle"
-          fill="rgba(255,255,255,0.3)" fontSize={9}>
-          {s}
-        </text>
-      ))}
-
-      {/* X 축 레이블 */}
-      <text x={cx(0)} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9}>1</text>
-      {n > 1 && (
-        <text x={cx(n - 1)} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9}>{n}</text>
-      )}
-
-      {/* 라인 */}
-      {n > 1 && (
-        <path d={pathD} fill="none" stroke="#22c55e" strokeWidth={2}
-          strokeLinejoin="round" strokeLinecap="round" />
-      )}
-
-      {/* 점 */}
-      {scores.map((s, i) => (
-        <circle key={i} cx={cx(i)} cy={cy(s)}
-          r={i === bestIdx ? 5 : 3}
-          fill={i === bestIdx ? '#FFD700' : '#22c55e'}
-          stroke={i === bestIdx ? 'rgba(255,255,255,0.8)' : 'none'}
-          strokeWidth={i === bestIdx ? 1.5 : 0}
-        />
-      ))}
-    </svg>
-  )
-}
 
 // ─── 프로필 모달 ─────────────────────────────────────────────────
 export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props) {
