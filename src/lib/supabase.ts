@@ -21,6 +21,18 @@ export async function fetchTopScores(): Promise<ScoreEntry[]> {
   return data ?? []
 }
 
+export async function checkDisplayNameTaken(name: string, excludeUserId?: string): Promise<boolean> {
+  let query = supabase
+    .from('scores')
+    .select('user_id', { count: 'exact', head: true })
+    .ilike('display_name', name)
+  if (excludeUserId) {
+    query = query.neq('user_id', excludeUserId)
+  }
+  const { count } = await query
+  return (count ?? 0) > 0
+}
+
 export async function updateDisplayName(newName: string): Promise<void> {
   const { data: { user }, error: authError } = await supabase.auth.updateUser({
     data: { display_name: newName },

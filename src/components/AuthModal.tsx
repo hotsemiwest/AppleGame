@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useAuthStore } from '../store/authStore'
+import { checkDisplayNameTaken } from '../lib/supabase'
 
 interface Props {
   onSuccess: () => void
@@ -17,11 +18,25 @@ export function AuthModal({ onSuccess, onClose }: Props) {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [nameError, setNameError] = useState('')
+  const [nameAvailable, setNameAvailable] = useState(false)
+  const [nameChecking, setNameChecking] = useState(false)
+
+  async function handleNameBlur() {
+    const trimmed = displayName.trim()
+    if (!trimmed) return
+    setNameChecking(true)
+    const taken = await checkDisplayNameTaken(trimmed)
+    setNameChecking(false)
+    setNameError(taken ? '이미 사용 중인 닉네임입니다' : '')
+    setNameAvailable(!taken)
+  }
 
   async function handleSubmit() {
     setError('')
     if (!email.trim() || !password.trim()) return
     if (tab === 'signup' && !displayName.trim()) return
+    if (tab === 'signup' && nameError) return
     setLoading(true)
     try {
       if (tab === 'signup') {
@@ -44,6 +59,8 @@ export function AuthModal({ onSuccess, onClose }: Props) {
   function switchTab(t: Tab) {
     setTab(t)
     setError('')
+    setNameError('')
+    setNameAvailable(false)
   }
 
   return (
@@ -76,14 +93,20 @@ export function AuthModal({ onSuccess, onClose }: Props) {
 
         <div className="space-y-3">
           {tab === 'signup' && (
-            <input
-              type="text"
-              value={displayName}
-              onChange={e => setDisplayName(e.target.value.slice(0, 16))}
-              placeholder="닉네임 (최대 16자)"
-              className="w-full bg-gray-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-gray-600 focus:border-green-500 transition-colors"
-              autoFocus
-            />
+            <div>
+              <input
+                type="text"
+                value={displayName}
+                onChange={e => { setDisplayName(e.target.value.slice(0, 16)); setNameError(''); setNameAvailable(false) }}
+                onBlur={handleNameBlur}
+                placeholder="닉네임 (최대 16자)"
+                className={`w-full bg-gray-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${nameError ? 'border-red-500' : 'border-gray-600 focus:border-green-500'}`}
+                autoFocus
+              />
+              {nameChecking && <p className="text-gray-400 text-xs mt-1 pl-1">확인 중...</p>}
+              {!nameChecking && nameError && <p className="text-red-400 text-xs mt-1 pl-1">{nameError}</p>}
+              {!nameChecking && nameAvailable && <p className="text-green-400 text-xs mt-1 pl-1">사용할 수 있는 닉네임입니다</p>}
+            </div>
           )}
           <input
             type="email"

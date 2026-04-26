@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { submitScore, fetchProfile } from '../lib/supabase'
@@ -16,6 +16,7 @@ export function GameOverModal() {
   const [submittedName, setSubmittedName] = useState<string | undefined>()
   const [showAuth, setShowAuth] = useState(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
+  const didSubmit = useRef(false)
 
   async function submitAndShowHistory(dn: string) {
     const submittedAt = new Date().toISOString()
@@ -35,7 +36,8 @@ export function GameOverModal() {
 
   // 로그인 상태면 자동 제출
   useEffect(() => {
-    if (phase !== 'submitting' || !displayName) return
+    if (phase !== 'submitting' || !displayName || didSubmit.current) return
+    didSubmit.current = true
     submitAndShowHistory(displayName).then(() => {
       setSubmittedName(displayName)
       setPhase('leaderboard')

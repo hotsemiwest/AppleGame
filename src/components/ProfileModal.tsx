@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../store/authStore'
-import { fetchProfile, fetchPublicProfile, ProfileData } from '../lib/supabase'
+import { fetchProfile, fetchPublicProfile, ProfileData, checkDisplayNameTaken } from '../lib/supabase'
 import { ScoreChart } from './ScoreChart'
 
 interface Props {
@@ -47,6 +47,8 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
     setSaving(true)
     setNameError('')
     try {
+      const taken = await checkDisplayNameTaken(trimmed, user?.id)
+      if (taken) { setNameError('이미 사용 중인 닉네임입니다'); setSaving(false); return }
       await updateDisplayName(trimmed)
       setEditingName(null)
     } catch {
