@@ -72,22 +72,27 @@ function subscribeChannel(roomCode: string) {
 
   channel
     .on('broadcast', { event: 'board' }, ({ payload }) => {
-      const isHost = useMultiStore.getState().isHost
-      const newBoard: Board = payload.board
-      const hostScore: number = payload.host_score
-      const guestScore: number = payload.guest_score
+      const s = useMultiStore.getState()
+      const remoteBoard: Board = payload.board
 
-      useMultiStore.setState({
-        board: newBoard,
-        myScore: isHost ? hostScore : guestScore,
-        opponentScore: isHost ? guestScore : hostScore,
-      })
+      // 데드락은 완전히 새로운 보드이므로 머지 없이 교체
+      // 일반 move broadcast는 OR-null 병합으로 동시 제거 충돌 해결
+      const mergedBoard: Board = (s.board && payload.reason !== 'deadlock')
+        ? s.board.map((row, r) =>
+            row.map((cell, c) => (cell === null || remoteBoard[r]?.[c] === null ? null : cell))
+          )
+        : remoteBoard
+
+      // myScore는 로컬에서만 관리 — 상대 브로드캐스트의 stale 값으로 덮어쓰지 않음
+      const opponentScore = s.isHost ? payload.guest_score : payload.host_score
+
+      useMultiStore.setState({ board: mergedBoard, opponentScore })
 
       if (payload.cleared_cells?.length) {
         useGameStore.getState().spawnOpponentParticles(payload.cleared_cells)
       }
 
-      if (isHost && !hasAnySolution(newBoard)) {
+      if (s.isHost && !hasAnySolution(mergedBoard)) {
         handleDeadlock()
       }
     })

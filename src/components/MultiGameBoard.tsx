@@ -45,7 +45,10 @@ export function MultiGameBoard() {
     return () => registerOpponentDragCallback(null)
   }, [])
 
+  const lastRectRef = useRef<SelectionRect | null>(null)
+
   const handleDrag = useCallback((rect: SelectionRect) => {
+    lastRectRef.current = rect
     const currentBoard = useMultiStore.getState().board
     if (!currentBoard) return
     selBoxRef.current?.show(normalizeRect(rect), sumRect(currentBoard, rect))
@@ -58,6 +61,7 @@ export function MultiGameBoard() {
   }, [])
 
   const handleCommit = useCallback((rect: SelectionRect) => {
+    lastRectRef.current = null
     selBoxRef.current?.hide()
     if (rafId.current !== null) { cancelAnimationFrame(rafId.current); rafId.current = null }
     useMultiStore.getState().broadcastDrag(null)
@@ -65,6 +69,7 @@ export function MultiGameBoard() {
   }, [])
 
   const handleCancel = useCallback(() => {
+    lastRectRef.current = null
     selBoxRef.current?.hide()
     if (rafId.current !== null) { cancelAnimationFrame(rafId.current); rafId.current = null }
     useMultiStore.getState().broadcastDrag(null)
@@ -75,6 +80,16 @@ export function MultiGameBoard() {
     { onDrag: handleDrag, onCommit: handleCommit, onCancel: handleCancel },
     () => useMultiStore.getState().phase,
   )
+
+  // 드래그 중 보드가 바뀌면(상대 브로드캐스트 머지) 선택 박스 sum을 즉시 재계산
+  useEffect(() => {
+    return useMultiStore.subscribe((state, prev) => {
+      if (state.board === prev.board) return
+      const rect = lastRectRef.current
+      if (!rect || !state.board) return
+      selBoxRef.current?.show(normalizeRect(rect), sumRect(state.board, rect))
+    })
+  }, [])
 
   useEffect(() => {
     return () => {
