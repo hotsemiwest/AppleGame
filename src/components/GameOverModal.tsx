@@ -10,7 +10,7 @@ type Phase = 'submitting' | 'leaderboard' | 'guest'
 
 export function GameOverModal() {
   const { score, personalBest, isNewRecord, startGame, goHome } = useGameStore()
-  const { user, displayName } = useAuthStore()
+  const { user, displayName, setPendingAuth } = useAuthStore()
 
   const [phase, setPhase] = useState<Phase>(user ? 'submitting' : 'guest')
   const [submittedName, setSubmittedName] = useState<string | undefined>()
@@ -160,6 +160,11 @@ export function GameOverModal() {
         <AuthModal
           onSuccess={handleAuthSuccess}
           onClose={() => setShowAuth(false)}
+          onSignupDone={() => {
+            setShowAuth(false)
+            setPendingAuth({ notice: '📧 인증 메일을 확인 후 로그인해 주세요.', openLogin: true })
+            goHome()
+          }}
         />
       )}
     </>

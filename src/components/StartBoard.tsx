@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { AuthModal } from './AuthModal'
@@ -7,8 +7,22 @@ const BOARD_HEIGHT = 538
 
 export function StartBoard() {
   const { personalBest, startGame } = useGameStore()
-  const { user } = useAuthStore()
+  const { user, pendingAuth, setPendingAuth } = useAuthStore()
   const [showAuth, setShowAuth] = useState(false)
+  const [authNotice, setAuthNotice] = useState<string | undefined>()
+
+  useEffect(() => {
+    if (pendingAuth?.openLogin) {
+      setAuthNotice(pendingAuth.notice)
+      setShowAuth(true)
+      setPendingAuth(null)
+    }
+  }, [pendingAuth, setPendingAuth])
+
+  function closeAuth() {
+    setShowAuth(false)
+    setAuthNotice(undefined)
+  }
 
   return (
     <>
@@ -62,8 +76,10 @@ export function StartBoard() {
 
       {showAuth && (
         <AuthModal
-          onSuccess={() => setShowAuth(false)}
-          onClose={() => setShowAuth(false)}
+          notice={authNotice}
+          initialTab="login"
+          onSuccess={closeAuth}
+          onClose={closeAuth}
         />
       )}
     </>

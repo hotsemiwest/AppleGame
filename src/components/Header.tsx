@@ -14,7 +14,7 @@ function formatTime(seconds: number): string {
 
 export function Header() {
   const { score, personalBest, timeLeft, gamePhase, startGame, goHome } = useGameStore()
-  const { user, displayName, signOut } = useAuthStore()
+  const { user, displayName, signOut, setPendingAuth } = useAuthStore()
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
@@ -176,6 +176,10 @@ export function Header() {
         <AuthModal
           onSuccess={() => setShowAuth(false)}
           onClose={() => setShowAuth(false)}
+          onSignupDone={() => {
+            setShowAuth(false)
+            setPendingAuth({ notice: '📧 인증 메일을 확인 후 로그인해 주세요.', openLogin: true })
+          }}
         />
       )}
 

@@ -10,9 +10,15 @@ const BOARD_WIDTH = 916
 
 export default function App() {
   const { gamePhase, tick } = useGameStore()
-  const initialize = useAuthStore(state => state.initialize)
+  const { initialize, pendingAuth, setPendingAuth } = useAuthStore()
 
   useEffect(() => { initialize() }, [initialize])
+
+  useEffect(() => {
+    if (!pendingAuth || pendingAuth.openLogin) return
+    const id = setTimeout(() => setPendingAuth(null), 5000)
+    return () => clearTimeout(id)
+  }, [pendingAuth, setPendingAuth])
 
   useEffect(() => {
     if (gamePhase !== 'playing') return
@@ -25,6 +31,18 @@ export default function App() {
       className="min-h-screen bg-gray-900 flex flex-col items-center justify-center py-6 overflow-x-hidden"
       style={{ userSelect: 'none' }}
     >
+      {pendingAuth && !pendingAuth.openLogin && (
+        <div
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-xl"
+          style={{
+            background: 'linear-gradient(135deg,#166534,#065f46)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {pendingAuth.notice}
+        </div>
+      )}
       <div className="board-scaler" style={{ width: BOARD_WIDTH }}>
         <Header />
         {gamePhase === 'start' ? <StartBoard /> : <GameBoard />}

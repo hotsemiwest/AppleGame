@@ -44,11 +44,12 @@ export async function updateDisplayName(newName: string): Promise<void> {
 }
 
 export async function submitScore(displayName: string, score: number): Promise<void> {
+  if (score < 1 || score > 170) return
   const { error } = await supabase.rpc('submit_score', {
     p_display_name: displayName,
     p_score: score,
   })
-  if (error) throw error
+  if (error && error.message !== 'rate_limit_exceeded') throw error
 }
 
 export interface ProfileData {

@@ -14,22 +14,32 @@ async function restorePersonalBest(userId: string) {
   }
 }
 
+export interface PendingAuth {
+  notice: string
+  openLogin: boolean
+}
+
 interface AuthState {
   user: User | null
   displayName: string | null
   isLoading: boolean
+  pendingAuth: PendingAuth | null
 
   initialize: () => void
   signUp: (email: string, password: string, displayName: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   updateDisplayName: (newName: string) => Promise<void>
+  setPendingAuth: (cfg: PendingAuth | null) => void
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   displayName: null,
   isLoading: true,
+  pendingAuth: null,
+
+  setPendingAuth: (cfg) => set({ pendingAuth: cfg }),
 
   initialize: () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -43,14 +53,19 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
     })
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null
       setPersonalBestPersistence(!!user)
       if (user) restorePersonalBest(user.id)
-      set({
+      const update: Partial<AuthState> = {
         user,
         displayName: user?.user_metadata?.display_name ?? null,
-      })
+      }
+      if (event === 'SIGNED_IN' && window.location.hash.includes('type=signup')) {
+        window.history.replaceState(null, '', window.location.pathname)
+        update.pendingAuth = { notice: '✅ 이메일 인증이 완료되었습니다! 환영합니다 🎉', openLogin: false }
+      }
+      set(update)
     })
   },
 
