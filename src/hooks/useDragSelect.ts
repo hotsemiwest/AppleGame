@@ -24,6 +24,7 @@ interface DragCallbacks {
 export function useDragSelect(
   boardRef: React.RefObject<HTMLDivElement | null>,
   { onDrag, onCommit, onCancel }: DragCallbacks,
+  getPhase?: () => string,
 ) {
   const startCell = useRef<{ row: number; col: number } | null>(null)
   const isDragging = useRef(false)
@@ -57,7 +58,8 @@ export function useDragSelect(
 
   useEffect(() => {
     const onMouseDown = (e: MouseEvent) => {
-      if (useGameStore.getState().gamePhase !== 'playing') return
+      const phase = getPhase ? getPhase() : useGameStore.getState().gamePhase
+      if (phase !== 'playing') return
       // Always refresh rect at drag start (handles layout shifts between drags)
       refreshCache()
       const cr = cachedRect.current
@@ -105,7 +107,8 @@ export function useDragSelect(
       startCell.current = null
       const rect = currentRect.current
       currentRect.current = null
-      if (rect && useGameStore.getState().gamePhase === 'playing') onCommitRef.current(rect)
+      const phase = getPhase ? getPhase() : useGameStore.getState().gamePhase
+      if (rect && phase === 'playing') onCommitRef.current(rect)
       else onCancelRef.current()
     }
 
@@ -165,9 +168,10 @@ export function useDragSelect(
     startCell.current = null
     const rect = currentRect.current
     currentRect.current = null
-    if (rect && useGameStore.getState().gamePhase === 'playing') onCommitRef.current(rect)
+    const phase = getPhase ? getPhase() : useGameStore.getState().gamePhase
+    if (rect && phase === 'playing') onCommitRef.current(rect)
     else onCancelRef.current()
-  }, [])
+  }, [getPhase])
 
   return { handleTouchStart, handleTouchMove, handleTouchEnd }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuthStore } from '../store/authStore'
 import { fetchProfile, fetchPublicProfile, ProfileData, checkDisplayNameTaken } from '../lib/supabase'
 import { ScoreChart } from './ScoreChart'
@@ -68,7 +69,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
       .finally(() => setLoading(false))
   }, [isOwnProfile, targetUserId])
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center z-[60]"
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
@@ -202,6 +203,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
           닫기
         </button>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

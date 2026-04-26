@@ -94,3 +94,51 @@ export async function fetchProfile(): Promise<ProfileData> {
 export async function fetchPublicProfile(userId: string): Promise<ProfileData> {
   return fetchProfileByUserId(userId)
 }
+
+export interface MultiRoomData {
+  id: string
+  room_code: string
+  host_id: string
+  host_display_name: string
+  guest_id: string
+  guest_display_name: string
+  status: string
+  board: number[][] | null
+  host_score: number
+  guest_score: number
+  started_at: string | null
+}
+
+export async function createMultiRoom(roomCode: string, hostDisplayName: string): Promise<void> {
+  const { error } = await supabase.rpc('create_multi_room', {
+    p_room_code: roomCode,
+    p_host_display_name: hostDisplayName,
+  })
+  if (error) throw error
+}
+
+export async function joinMultiRoom(roomCode: string, guestDisplayName: string): Promise<MultiRoomData> {
+  const { data, error } = await supabase.rpc('join_multi_room', {
+    p_room_code: roomCode,
+    p_guest_display_name: guestDisplayName,
+  })
+  if (error) throw error
+  return data as MultiRoomData
+}
+
+export async function startMultiGame(roomCode: string, board: number[][]): Promise<void> {
+  const { error } = await supabase.rpc('start_multi_game', {
+    p_room_code: roomCode,
+    p_board: board,
+  })
+  if (error) throw error
+}
+
+export async function endMultiRoom(roomCode: string, hostScore: number, guestScore: number): Promise<void> {
+  const { error } = await supabase.rpc('end_multi_room', {
+    p_room_code: roomCode,
+    p_host_score: hostScore,
+    p_guest_score: guestScore,
+  })
+  if (error) throw error
+}

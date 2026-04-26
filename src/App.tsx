@@ -1,16 +1,22 @@
 import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
 import { useAuthStore } from './store/authStore'
+import { useMultiStore } from './store/multiStore'
 import { Header } from './components/Header'
 import { GameBoard } from './components/GameBoard'
 import { GameOverModal } from './components/GameOverModal'
 import { StartBoard } from './components/StartBoard'
+import { MultiLobby } from './components/MultiLobby'
+import { MultiGame } from './components/MultiGame'
+import { MultiGameOver } from './components/MultiGameOver'
+import { MultiCountdown } from './components/MultiCountdown'
 
 const BOARD_WIDTH = 916
 
 export default function App() {
   const { gamePhase, tick } = useGameStore()
   const { initialize, pendingAuth, setPendingAuth } = useAuthStore()
+  const multiPhase = useMultiStore(s => s.phase)
 
   useEffect(() => { initialize() }, [initialize])
 
@@ -43,12 +49,23 @@ export default function App() {
           {pendingAuth.notice}
         </div>
       )}
+
       <div className="board-scaler" style={{ width: BOARD_WIDTH }}>
-        <Header />
-        {gamePhase === 'start' ? <StartBoard /> : <GameBoard />}
+        {multiPhase === 'playing' ? (
+          <MultiGame />
+        ) : (
+          <>
+            <Header />
+            {gamePhase === 'start' ? <StartBoard /> : <GameBoard />}
+          </>
+        )}
       </div>
 
-      {gamePhase === 'ended' && <GameOverModal />}
+      {gamePhase === 'ended' && multiPhase === 'off' && <GameOverModal />}
+
+      {multiPhase === 'waiting' && <MultiLobby />}
+      {multiPhase === 'countdown' && <MultiCountdown />}
+      {multiPhase === 'ended' && <MultiGameOver />}
     </div>
   )
 }

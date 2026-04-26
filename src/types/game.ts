@@ -30,6 +30,7 @@ export interface Particle {
   distance: number
   duration: number
   tier: ParticleTier
+  isOpponent?: boolean
 }
 
 export interface ScorePopup {

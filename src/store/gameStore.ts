@@ -53,6 +53,7 @@ interface GameState {
   setPersonalBest: (score: number) => void
   confirmSelection: (rect: SelectionRect) => void
   spawnParticles: (cells: CellRef[]) => void
+  spawnOpponentParticles: (cells: CellRef[]) => void
   tick: () => void
 }
 
@@ -166,6 +167,42 @@ export const useGameStore = create<GameState>((set, get) => ({
         scorePopups: state.scorePopups.filter(p => !newPopups.some(np => np.id === p.id)),
       }))
     }, popupDuration)
+  },
+
+  spawnOpponentParticles: (cells: CellRef[]) => {
+    const count = cells.length
+    const tier = getTier(count)
+    const { perTile, size, baseDist, duration } = TIER_CONFIG[tier]
+    const colors = TIER_COLORS[tier]
+    const ts = Date.now()
+    const opPerTile = Math.max(3, Math.floor(perTile / 2))
+    const opDuration = Math.floor(duration * 0.75)
+
+    const newParticles: Particle[] = []
+    for (const cell of cells) {
+      const angleOffset = Math.random() * (360 / opPerTile)
+      for (let i = 0; i < opPerTile; i++) {
+        const angle = (i / opPerTile) * 360 + angleOffset
+        const distance = baseDist * 0.6 * (0.65 + Math.random() * 0.7)
+        newParticles.push({
+          id: `op-${cell.row}-${cell.col}-${i}-${ts}`,
+          row: cell.row,
+          col: cell.col,
+          color: colors[i % colors.length],
+          angle,
+          size: size * 0.65,
+          distance,
+          duration: opDuration,
+          tier,
+          isOpponent: true,
+        })
+      }
+    }
+
+    set(state => ({ particles: [...state.particles, ...newParticles] }))
+    setTimeout(() => {
+      set(state => ({ particles: state.particles.filter(p => !newParticles.some(np => np.id === p.id)) }))
+    }, opDuration)
   },
 
   tick: () => {

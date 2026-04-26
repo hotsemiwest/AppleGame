@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { Leaderboard } from './Leaderboard'
@@ -149,7 +150,7 @@ export function Header() {
         )}
       </div>
 
-      {showLeaderboard && (
+      {showLeaderboard && createPortal(
         <div
           className="fixed inset-0 flex items-center justify-center z-50"
           style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
@@ -169,7 +170,8 @@ export function Header() {
               닫기
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {showAuth && (

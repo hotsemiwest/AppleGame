@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuthStore } from '../store/authStore'
 import { checkDisplayNameTaken } from '../lib/supabase'
 
@@ -81,7 +82,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
     setInternalNotice('')
   }
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center z-[60]"
       style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
@@ -202,6 +203,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
           </>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

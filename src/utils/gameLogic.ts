@@ -38,6 +38,17 @@ export function isValidSelection(board: Board, rect: SelectionRect): boolean {
   return sumRect(board, rect) === TARGET_SUM
 }
 
+export function hasAnySolution(board: Board): boolean {
+  const R = board.length, C = board[0]?.length ?? 0
+  for (let r1 = 0; r1 < R; r1++)
+    for (let c1 = 0; c1 < C; c1++)
+      for (let r2 = r1; r2 < R; r2++)
+        for (let c2 = c1; c2 < C; c2++)
+          if (sumRect(board, { startRow: r1, startCol: c1, endRow: r2, endCol: c2 }) === TARGET_SUM)
+            return true
+  return false
+}
+
 export function clearRect(board: Board, rect: SelectionRect): { newBoard: Board; cleared: CellRef[] } {
   const cells = getCellsInRect(board, rect)
   const newBoard = board.map(row => [...row])
