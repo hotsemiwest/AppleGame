@@ -124,6 +124,8 @@ export function useDragSelect(
   }, [refreshCache])
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const phase = getPhase ? getPhase() : useGameStore.getState().gamePhase
+    if (phase !== 'playing') return
     refreshCache()
     const cr = cachedRect.current
     if (!cr) return
@@ -137,7 +139,7 @@ export function useDragSelect(
     const rect: SelectionRect = { startRow: cell.row, startCol: cell.col, endRow: cell.row, endCol: cell.col }
     currentRect.current = rect
     onDragRef.current(rect)
-  }, [refreshCache])
+  }, [refreshCache, getPhase])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging.current || !startCell.current || !cachedRect.current) return

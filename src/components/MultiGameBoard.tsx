@@ -70,7 +70,7 @@ export function MultiGameBoard() {
     useMultiStore.getState().broadcastDrag(null)
   }, [])
 
-  useDragSelect(
+  const { handleTouchStart, handleTouchMove, handleTouchEnd } = useDragSelect(
     boardRef,
     { onDrag: handleDrag, onCommit: handleCommit, onCancel: handleCancel },
     () => useMultiStore.getState().phase,
@@ -98,6 +98,9 @@ export function MultiGameBoard() {
         cursor: 'crosshair',
         touchAction: 'none',
       }}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {board.map((row, r) =>
         row.map((cell, c) => (
