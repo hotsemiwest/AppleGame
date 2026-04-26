@@ -5,7 +5,7 @@ export function MultiGameOver() {
     winner, isHost,
     myName, opponentName,
     myScore, opponentScore,
-    leaveRoom,
+    rematch, leaveRoom,
   } = useMultiStore()
 
   const hostName = isHost ? myName : opponentName
@@ -59,12 +59,20 @@ export function MultiGameOver() {
           </div>
         </div>
 
-        <button
-          onClick={leaveRoom}
-          className="w-full py-3.5 rounded-2xl text-base font-black text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 transition-all active:scale-95 shadow-lg"
-        >
-          🏠 홈으로
-        </button>
+        <div className="flex gap-3">
+          <button
+            onClick={leaveRoom}
+            className="flex-1 py-3.5 rounded-2xl text-base font-black text-gray-300 bg-gray-700 hover:bg-gray-600 transition-all active:scale-95"
+          >
+            🏠 홈으로
+          </button>
+          <button
+            onClick={rematch}
+            className="flex-1 py-3.5 rounded-2xl text-base font-black text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500 transition-all active:scale-95 shadow-lg"
+          >
+            🔄 다시하기
+          </button>
+        </div>
       </div>
     </div>
   )

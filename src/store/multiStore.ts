@@ -35,6 +35,7 @@ export interface MultiState {
   broadcastDrag: (rect: SelectionRect | null) => void
   tick: () => void
   forfeit: () => void
+  rematch: () => void
   leaveRoom: () => void
   clearError: () => void
 }
@@ -109,6 +110,18 @@ function subscribeChannel(roomCode: string) {
       if (payload.player_id !== myId) {
         endGame('me')
       }
+    })
+    .on('broadcast', { event: 'rematch' }, () => {
+      useMultiStore.setState({
+        phase: 'waiting',
+        board: null,
+        myScore: 0,
+        opponentScore: 0,
+        timeLeft: GAME_DURATION,
+        winner: null,
+        deadlockNotice: false,
+        countdownValue: 3,
+      })
     })
     .on(
       'postgres_changes',
@@ -317,6 +330,20 @@ export const useMultiStore = create<MultiState>((set, get) => ({
     } else {
       set({ timeLeft: timeLeft - 1 })
     }
+  },
+
+  rematch: () => {
+    channel?.send({ type: 'broadcast', event: 'rematch', payload: {} })
+    set({
+      phase: 'waiting',
+      board: null,
+      myScore: 0,
+      opponentScore: 0,
+      timeLeft: GAME_DURATION,
+      winner: null,
+      deadlockNotice: false,
+      countdownValue: 3,
+    })
   },
 
   forfeit: () => {
