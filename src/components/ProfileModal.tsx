@@ -101,13 +101,32 @@ function ScoreChart({ history }: { history: { score: number; played_at: string }
 
 // ─── 프로필 모달 ─────────────────────────────────────────────────
 export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props) {
-  const { user, displayName } = useAuthStore()
+  const { user, displayName, updateDisplayName } = useAuthStore()
   const [data, setData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [editingName, setEditingName] = useState<string | null>(null)
+  const [nameError, setNameError] = useState('')
+  const [saving, setSaving] = useState(false)
 
-  const isOwnProfile = !targetUserId
+  const isOwnProfile = !targetUserId || targetUserId === user?.id
   const shownName = isOwnProfile ? displayName : targetDisplayName
+
+  async function handleSaveName() {
+    const trimmed = (editingName ?? '').trim()
+    if (!trimmed) { setNameError('닉네임을 입력해주세요'); return }
+    if (trimmed.length > 16) { setNameError('최대 16자까지 입력 가능합니다'); return }
+    setSaving(true)
+    setNameError('')
+    try {
+      await updateDisplayName(trimmed)
+      setEditingName(null)
+    } catch {
+      setNameError('저장에 실패했습니다')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   useEffect(() => {
     const fetch = isOwnProfile
@@ -133,9 +152,48 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
         {/* 계정 정보 */}
         <div className="text-center">
           <div className="text-4xl mb-2">👤</div>
-          <div className="text-xl font-black text-white">{shownName}</div>
-          {isOwnProfile && (
-            <div className="text-xs text-gray-400 mt-0.5">{user?.email}</div>
+          {isOwnProfile && editingName !== null ? (
+            <div className="flex flex-col items-center gap-2">
+              <input
+                type="text"
+                value={editingName}
+                onChange={e => setEditingName(e.target.value.slice(0, 16))}
+                onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(null) }}
+                className="bg-gray-700 text-white text-center rounded-xl px-3 py-1.5 text-lg font-black outline-none border border-gray-600 focus:border-green-500 transition-colors w-48"
+                autoFocus
+              />
+              {nameError && <p className="text-red-400 text-xs">{nameError}</p>}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setEditingName(null); setNameError('') }}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 bg-gray-700 hover:bg-gray-600 transition-all"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleSaveName}
+                  disabled={saving}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-500 transition-all disabled:opacity-50"
+                >
+                  {saving ? '저장 중...' : '저장'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1.5">
+              <div className="text-xl font-black text-white">{shownName}</div>
+              {isOwnProfile && (
+                <div className="text-xs text-gray-400">{user?.email}</div>
+              )}
+              {isOwnProfile && (
+                <button
+                  onClick={() => setEditingName(displayName ?? '')}
+                  className="px-2 py-0.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-200 bg-gray-700 hover:bg-gray-600 transition-all"
+                >
+                  닉네임 변경
+                </button>
+              )}
+            </div>
           )}
         </div>
 

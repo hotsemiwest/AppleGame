@@ -21,6 +21,16 @@ export async function fetchTopScores(): Promise<ScoreEntry[]> {
   return data ?? []
 }
 
+export async function updateDisplayName(newName: string): Promise<void> {
+  const { data: { user }, error: authError } = await supabase.auth.updateUser({
+    data: { display_name: newName },
+  })
+  if (authError) throw authError
+  if (user) {
+    await supabase.from('scores').update({ display_name: newName }).eq('user_id', user.id)
+  }
+}
+
 export async function submitScore(displayName: string, score: number): Promise<void> {
   const { error } = await supabase.rpc('submit_score', {
     p_display_name: displayName,

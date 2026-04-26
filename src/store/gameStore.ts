@@ -8,6 +8,12 @@ import { isValidSelection, clearRect } from '../utils/gameLogic'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
 
+// authStore에서 로그인 상태에 따라 제어 (순환 참조 방지용 모듈 변수)
+let _persistBest = false
+export function setPersonalBestPersistence(persist: boolean) {
+  _persistBest = persist
+}
+
 function loadPersonalBest(): number {
   return parseInt(localStorage.getItem(PERSONAL_BEST_KEY) ?? '0', 10)
 }
@@ -43,6 +49,8 @@ interface GameState {
   startGame: () => void
   endGame: () => void
   goHome: () => void
+  resetPersonalBest: () => void
+  setPersonalBest: (score: number) => void
   confirmSelection: (rect: SelectionRect) => void
   spawnParticles: (cells: CellRef[]) => void
   tick: () => void
@@ -77,7 +85,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   endGame: () => {
     const { score, personalBest } = get()
     const isNewRecord = score > personalBest
-    if (isNewRecord) {
+    if (isNewRecord && _persistBest) {
       localStorage.setItem(PERSONAL_BEST_KEY, String(score))
     }
     set({
@@ -85,6 +93,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       personalBest: isNewRecord ? score : personalBest,
       isNewRecord,
     })
+  },
+
+  resetPersonalBest: () => {
+    localStorage.removeItem(PERSONAL_BEST_KEY)
+    set({ personalBest: 0 })
+  },
+
+  setPersonalBest: (score: number) => {
+    localStorage.setItem(PERSONAL_BEST_KEY, String(score))
+    set({ personalBest: score })
   },
 
   confirmSelection: (rect: SelectionRect) => {

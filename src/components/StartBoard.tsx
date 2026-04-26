@@ -23,7 +23,7 @@ export function StartBoard() {
       >
         <div className="text-center w-full max-w-lg">
           <div className="text-5xl mb-5">🍎</div>
-          <h2 className="text-3xl font-black text-white mb-1">후루츠 박스</h2>
+          <h2 className="text-3xl font-black text-white mb-1">AppleBox</h2>
           <p className="text-gray-400 mb-7">드래그로 합이 10이 되는 숫자들을 선택하세요</p>
 
           <div className="bg-gray-800 rounded-2xl p-5 text-left space-y-2.5 text-sm text-gray-300">

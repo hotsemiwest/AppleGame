@@ -1,6 +1,18 @@
 import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { supabase, updateDisplayName as apiUpdateDisplayName } from '../lib/supabase'
+import { setPersonalBestPersistence, useGameStore } from './gameStore'
+
+async function restorePersonalBest(userId: string) {
+  const { data } = await supabase
+    .from('scores')
+    .select('score')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (data?.score) {
+    useGameStore.getState().setPersonalBest(data.score)
+  }
+}
 
 interface AuthState {
   user: User | null
@@ -11,6 +23,7 @@ interface AuthState {
   signUp: (email: string, password: string, displayName: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
+  updateDisplayName: (newName: string) => Promise<void>
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -21,6 +34,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   initialize: () => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user ?? null
+      setPersonalBestPersistence(!!user)
+      if (user) restorePersonalBest(user.id)
       set({
         user,
         displayName: user?.user_metadata?.display_name ?? null,
@@ -30,6 +45,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     supabase.auth.onAuthStateChange((_event, session) => {
       const user = session?.user ?? null
+      setPersonalBestPersistence(!!user)
+      if (user) restorePersonalBest(user.id)
       set({
         user,
         displayName: user?.user_metadata?.display_name ?? null,
@@ -53,5 +70,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
+    useGameStore.getState().resetPersonalBest()
+  },
+
+  updateDisplayName: async (newName: string) => {
+    await apiUpdateDisplayName(newName)
+    set({ displayName: newName })
   },
 }))

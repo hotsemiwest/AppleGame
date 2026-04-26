@@ -30,119 +30,123 @@ export function Header() {
 
   return (
     <>
-      <div className="flex items-center justify-between w-full px-4 py-3 mb-4">
+      <div className="w-full mb-7">
+        <div className="flex items-center justify-between w-full px-4 py-3">
 
-        {/* 왼쪽: 점수 / 최고기록 */}
-        <div className="flex gap-6 flex-1">
-          {!isStart ? (
-            <>
-              <div className="text-center">
-                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">점수</div>
-                <div className="text-3xl font-black text-white score-display">{score}</div>
-              </div>
+          {/* 왼쪽: 점수 / 최고기록 */}
+          <div className="flex gap-6 flex-1">
+            {!isStart ? (
+              <>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">점수</div>
+                  <div className="text-3xl font-black text-white score-display">{score}</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
+                  <div className="text-3xl font-black text-yellow-400">{personalBest}</div>
+                </div>
+              </>
+            ) : personalBest > 0 ? (
               <div className="text-center">
                 <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
                 <div className="text-3xl font-black text-yellow-400">{personalBest}</div>
               </div>
-            </>
-          ) : personalBest > 0 ? (
-            <div className="text-center">
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
-              <div className="text-3xl font-black text-yellow-400">{personalBest}</div>
-            </div>
-          ) : null}
-        </div>
+            ) : null}
+          </div>
 
-        {/* 중앙: 타이머 (시작 전엔 빈 공간) */}
-        <div className="text-center">
-          {isStart ? (
-            <div />
-          ) : (
-            <>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">남은 시간</div>
-              <div
-                className={`text-4xl font-black tabular-nums transition-colors ${
-                  isUrgent ? 'text-red-400 timer-shake' : 'text-white'
-                }`}
-              >
-                {formatTime(timeLeft)}
-              </div>
-              <div
-                className="mt-2 w-40 h-2 rounded-full overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.1)' }}
-              >
+          {/* 중앙: 타이머 */}
+          <div className="text-center">
+            {!isStart && (
+              <>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">남은 시간</div>
                 <div
-                  className="h-full rounded-full transition-all duration-1000 ease-linear"
-                  style={{
-                    width: `${(timeLeft / 120) * 100}%`,
-                    background: isUrgent
-                      ? 'linear-gradient(90deg, #ef4444, #f97316)'
-                      : 'linear-gradient(90deg, #22c55e, #3b82f6)',
-                  }}
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        {/* 오른쪽 */}
-        <div className="flex items-center justify-end gap-2 flex-1">
-          {isStart ? (
-            <>
-              <button
-                onClick={() => setShowLeaderboard(true)}
-                className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                🏆 랭킹
-              </button>
-
-              {user ? (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowProfile(true)}
-                    className="px-3 py-2 rounded-lg text-sm transition-all active:scale-95 hover:bg-gray-600"
-                    style={{ background: '#374151', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    <span className="text-gray-200 font-semibold">👤 {displayName}</span>
-                  </button>
-                  <button
-                    onClick={signOut}
-                    className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                    style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
-                  >
-                    로그아웃
-                  </button>
+                  className={`text-4xl font-black tabular-nums transition-colors ${
+                    isUrgent ? 'text-red-400 timer-shake' : 'text-white'
+                  }`}
+                >
+                  {formatTime(timeLeft)}
                 </div>
-              ) : (
+              </>
+            )}
+          </div>
+
+          {/* 오른쪽 */}
+          <div className="flex items-center justify-end gap-2 flex-1">
+            {isStart ? (
+              <>
                 <button
-                  onClick={() => setShowAuth(true)}
+                  onClick={() => setShowLeaderboard(true)}
                   className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
                   style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
                 >
-                  로그인
+                  🏆 랭킹
                 </button>
-              )}
-            </>
-          ) : (
-            <>
-              <button
-                onClick={goHome}
-                className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                🏠 홈
-              </button>
-              <button
-                onClick={startGame}
-                className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
-              >
-                🔄 다시하기
-              </button>
-            </>
-          )}
+
+                {user ? (
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setShowProfile(true)}
+                      className="px-3 py-2 rounded-lg text-sm transition-all active:scale-95 hover:bg-gray-600"
+                      style={{ background: '#374151', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      <span className="text-gray-200 font-semibold">👤 {displayName}</span>
+                    </button>
+                    <button
+                      onClick={signOut}
+                      className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
+                      style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
+                    >
+                      로그아웃
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAuth(true)}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
+                    style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
+                  >
+                    로그인
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={goHome}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
+                  style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  🏠 홈
+                </button>
+                <button
+                  onClick={startGame}
+                  className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
+                  style={{ background: '#374151', color: '#d1d5db', border: '1px solid rgba(255,255,255,0.1)' }}
+                >
+                  🔄 다시하기
+                </button>
+              </>
+            )}
+          </div>
         </div>
+
+        {/* 게이지바: 게임 중일 때만, 컨테이너 전체 너비 */}
+        {!isStart && (
+          <div
+            className="w-full h-2 rounded-full overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.1)' }}
+          >
+            <div
+              className="h-full rounded-full transition-all duration-1000 ease-linear"
+              style={{
+                width: `${(timeLeft / 120) * 100}%`,
+                background: isUrgent
+                  ? 'linear-gradient(90deg, #ef4444, #f97316)'
+                  : 'linear-gradient(90deg, #22c55e, #3b82f6)',
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {showLeaderboard && (
