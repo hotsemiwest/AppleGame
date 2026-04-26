@@ -10,19 +10,31 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 export function generateBoard(): Board {
-  // 85 pairs summing to 10: 17 pairs each of (1,9),(2,8),(3,7),(4,6),(5,5)
-  const tiles: number[] = []
-  const pairs: [number, number][] = [[1, 9], [2, 8], [3, 7], [4, 6], [5, 5]]
-  for (const [a, b] of pairs) {
-    for (let i = 0; i < 17; i++) {
-      tiles.push(a, b)
+  const board: number[][] = Array.from({ length: ROWS }, () => new Array(COLS).fill(0))
+
+  for (let c = 0; c < COLS; c++) {
+    // 각 열에 (1,9),(2,8),(3,7),(4,6),(5,5) 한 쌍씩 → 10개
+    const col = shuffle([1, 9, 2, 8, 3, 7, 4, 6, 5, 5])
+
+    // 9와 1이 두 칸 간격 안에 없으면 1을 9에서 정확히 2행 거리로 이동
+    const nineRow = col.indexOf(9)
+    const oneRow = col.indexOf(1)
+    if (Math.abs(nineRow - oneRow) !== 2) {
+      const up = nineRow - 2
+      const down = nineRow + 2
+      const canUp = up >= 0
+      const canDown = down < ROWS
+      const targetRow =
+        canUp && canDown ? (Math.random() < 0.5 ? up : down)
+        : canUp ? up
+        : down
+      ;[col[oneRow], col[targetRow]] = [col[targetRow], col[oneRow]]
+    }
+
+    for (let r = 0; r < ROWS; r++) {
+      board[r][c] = col[r]
     }
   }
 
-  const shuffled = shuffle(tiles)
-  const board: Board = []
-  for (let r = 0; r < ROWS; r++) {
-    board.push(shuffled.slice(r * COLS, r * COLS + COLS))
-  }
   return board
 }
