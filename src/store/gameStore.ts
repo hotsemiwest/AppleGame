@@ -26,12 +26,76 @@ function getTier(count: number): ParticleTier {
 }
 
 const TIER_CONFIG: Record<ParticleTier, { perTile: number; size: number; baseDist: number; duration: number }> = {
-  normal: { perTile: 6,  size: 10, baseDist: 44,  duration: 600 },
-  combo:  { perTile: 10, size: 14, baseDist: 72,  duration: 750 },
-  big:    { perTile: 16, size: 18, baseDist: 100, duration: 950 },
+  normal: { perTile: 10, size: 10,  baseDist: 65,  duration: 650  },
+  combo:  { perTile: 15, size: 15,  baseDist: 95,  duration: 820  },
+  big:    { perTile: 22, size: 19,  baseDist: 130, duration: 1050 },
 }
 
+// Small bright sparks that shoot farther and faster (combo/big only)
+const SPARKLE_COLORS = ['#FFFFFF', '#FFD700', '#FF8C00'] as const
+
 const TIER_COLORS: Record<ParticleTier, readonly string[]> = PARTICLE_COLORS
+
+// Shared builder — used by both player and opponent so effects are identical
+function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle[], number] {
+  const count = cells.length
+  const tier = getTier(count)
+  const { perTile, size, baseDist, duration } = TIER_CONFIG[tier]
+  const colors = TIER_COLORS[tier]
+  const ts = Date.now()
+  const prefix = isOpponent ? 'op' : 'p'
+
+  const particles: Particle[] = []
+  for (const cell of cells) {
+    const angleOffset = Math.random() * (360 / perTile)
+
+    // Main burst
+    for (let i = 0; i < perTile; i++) {
+      const angle = (i / perTile) * 360 + angleOffset
+      const dist = baseDist * (0.65 + Math.random() * 0.7)
+      particles.push({
+        id: `${prefix}-${cell.row}-${cell.col}-${i}-${ts}`,
+        row: cell.row,
+        col: cell.col,
+        color: colors[i % colors.length],
+        angle,
+        size: size * (0.7 + Math.random() * 0.6),
+        distance: dist,
+        duration,
+        tier,
+        shape: 'circle',
+        delay: Math.random() * 60,
+        ...(isOpponent && { isOpponent: true }),
+      })
+    }
+
+    // Sparkle secondary burst (combo / big only)
+    if (tier !== 'normal') {
+      const sparkCount = tier === 'big' ? 7 : 4
+      const sparkDist = baseDist * 1.55
+      const sparkDur  = Math.round(duration * 0.48)
+      for (let i = 0; i < sparkCount; i++) {
+        particles.push({
+          id: `${prefix}-sp-${cell.row}-${cell.col}-${i}-${ts}`,
+          row: cell.row,
+          col: cell.col,
+          color: SPARKLE_COLORS[i % SPARKLE_COLORS.length],
+          angle: Math.random() * 360,
+          size: 5,
+          distance: sparkDist * (0.8 + Math.random() * 0.4),
+          duration: sparkDur,
+          tier,
+          shape: 'circle',
+          delay: 30 + Math.random() * 90,
+          rotation: 0,
+          ...(isOpponent && { isOpponent: true }),
+        })
+      }
+    }
+  }
+
+  return [particles, duration]
+}
 
 interface GameState {
   board: Board
@@ -112,34 +176,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   spawnParticles: (cells: CellRef[]) => {
+    const [newParticles, duration] = buildParticles(cells, false)
     const count = cells.length
     const tier = getTier(count)
-    const { perTile, size, baseDist, duration } = TIER_CONFIG[tier]
-    const colors = TIER_COLORS[tier]
     const ts = Date.now()
 
-    const newParticles: Particle[] = []
-    for (const cell of cells) {
-      const angleOffset = Math.random() * (360 / perTile)
-      for (let i = 0; i < perTile; i++) {
-        const angle = (i / perTile) * 360 + angleOffset
-        // Vary distance for organic burst feel
-        const distance = baseDist * (0.65 + Math.random() * 0.7)
-        newParticles.push({
-          id: `${cell.row}-${cell.col}-${i}-${ts}`,
-          row: cell.row,
-          col: cell.col,
-          color: colors[i % colors.length],
-          angle,
-          size,
-          distance,
-          duration,
-          tier,
-        })
-      }
-    }
-
-    // Score popup for combo and big
     const newPopups: ScorePopup[] = []
     if (tier !== 'normal') {
       const rows = cells.map(c => c.row)
@@ -153,7 +194,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       })
     }
 
-    const popupDuration = duration + 300
     set(state => ({
       particles: [...state.particles, ...newParticles],
       scorePopups: [...state.scorePopups, ...newPopups],
@@ -163,43 +203,15 @@ export const useGameStore = create<GameState>((set, get) => ({
         particles: state.particles.filter(p => !newParticles.some(np => np.id === p.id)),
         scorePopups: state.scorePopups.filter(p => !newPopups.some(np => np.id === p.id)),
       }))
-    }, popupDuration)
+    }, duration + 400)
   },
 
   spawnOpponentParticles: (cells: CellRef[]) => {
-    const count = cells.length
-    const tier = getTier(count)
-    const { perTile, size, baseDist, duration } = TIER_CONFIG[tier]
-    const colors = TIER_COLORS[tier]
-    const ts = Date.now()
-    const opPerTile = Math.max(3, Math.floor(perTile / 2))
-    const opDuration = Math.floor(duration * 0.75)
-
-    const newParticles: Particle[] = []
-    for (const cell of cells) {
-      const angleOffset = Math.random() * (360 / opPerTile)
-      for (let i = 0; i < opPerTile; i++) {
-        const angle = (i / opPerTile) * 360 + angleOffset
-        const distance = baseDist * 0.6 * (0.65 + Math.random() * 0.7)
-        newParticles.push({
-          id: `op-${cell.row}-${cell.col}-${i}-${ts}`,
-          row: cell.row,
-          col: cell.col,
-          color: colors[i % colors.length],
-          angle,
-          size: size * 0.65,
-          distance,
-          duration: opDuration,
-          tier,
-          isOpponent: true,
-        })
-      }
-    }
-
+    const [newParticles, duration] = buildParticles(cells, true)
     set(state => ({ particles: [...state.particles, ...newParticles] }))
     setTimeout(() => {
       set(state => ({ particles: state.particles.filter(p => !newParticles.some(np => np.id === p.id)) }))
-    }, opDuration)
+    }, duration + 200)
   },
 
   tick: () => {

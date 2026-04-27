@@ -21,6 +21,9 @@ export function ParticleLayer() {
         const dy = Math.sin(angleRad) * p.distance
         const half = p.size / 2
 
+        const glowSize = p.tier === 'big' ? p.size * 2 : p.size * 1.2
+        const glow = p.tier !== 'normal' ? `0 0 ${glowSize}px ${p.color}` : 'none'
+
         return (
           <div
             key={p.id}
@@ -34,11 +37,11 @@ export function ParticleLayer() {
                 height: p.size,
                 borderRadius: '50%',
                 background: p.color,
-                boxShadow: p.tier === 'big' && !p.isOpponent ? `0 0 ${p.size}px ${p.color}` : 'none',
-                opacity: p.isOpponent ? 0.4 : 1,
+                boxShadow: glow,
                 '--dx': `${dx}px`,
                 '--dy': `${dy}px`,
                 '--dur': `${p.duration}ms`,
+                animationDelay: `${p.delay ?? 0}ms`,
               } as React.CSSProperties
             }
           />
@@ -53,7 +56,7 @@ export function ParticleLayer() {
         return (
           <div
             key={popup.id}
-            className="score-popup"
+            className={isBig ? 'score-popup-big' : 'score-popup'}
             style={{
               position: 'absolute',
               left: cx,

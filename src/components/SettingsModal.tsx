@@ -26,7 +26,7 @@ const BTN_ON   = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
 interface Props { onClose: () => void }
 
 export function SettingsModal({ onClose }: Props) {
-  const { theme, tileShape, tileColorId, setTheme, setTileShape, setTileColor } = useThemeStore()
+  const { theme, tileShape, tileColorId, showHintCount, setTheme, setTileShape, setTileColor, setShowHintCount } = useThemeStore()
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -97,6 +97,15 @@ export function SettingsModal({ onClose }: Props) {
                 }}
               />
             ))}
+          </div>
+        </div>
+
+        {/* 조합 수 표시 */}
+        <div className="mb-5">
+          <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">게임 중 조합 수 표시</div>
+          <div className="flex gap-2">
+            <button onClick={() => setShowHintCount(true)}  className={`${BTN_BASE} ${showHintCount  ? BTN_ON : 'panel-hover'}`} style={showHintCount  ? {} : { background: C.surfaceRaised, color: C.textSub }}>켜기</button>
+            <button onClick={() => setShowHintCount(false)} className={`${BTN_BASE} ${!showHintCount ? BTN_ON : 'panel-hover'}`} style={!showHintCount ? {} : { background: C.surfaceRaised, color: C.textSub }}>끄기</button>
           </div>
         </div>
 

@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
+import { countSolutions } from '../utils/gameLogic'
 import { Leaderboard } from './Leaderboard'
 import { AuthModal } from './AuthModal'
 import { ProfileModal } from './ProfileModal'
@@ -17,9 +18,15 @@ function formatTime(seconds: number): string {
 }
 
 export function Header() {
-  const { score, personalBest, timeLeft, gamePhase, startGame, goHome } = useGameStore()
+  const { score, personalBest, timeLeft, gamePhase, startGame, goHome, board } = useGameStore()
   const { user, displayName, signOut, setPendingAuth } = useAuthStore()
   const theme = useThemeStore(s => s.theme)
+  const showHintCount = useThemeStore(s => s.showHintCount)
+
+  const solutionCount = useMemo(() => {
+    if (!showHintCount || gamePhase !== 'playing') return 0
+    return countSolutions(board)
+  }, [board, showHintCount, gamePhase])
   const [showLeaderboard, setShowLeaderboard] = useState(false)
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
@@ -51,6 +58,12 @@ export function Header() {
                   <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
                   <div className="text-3xl font-black" style={{ color: C.accentYellow }}>{personalBest}</div>
                 </div>
+                {showHintCount && gamePhase === 'playing' && (
+                  <div className="text-center">
+                    <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">조합 수</div>
+                    <div className="text-3xl font-black" style={{ color: C.blue }}>{solutionCount}</div>
+                  </div>
+                )}
               </>
             ) : personalBest > 0 ? (
               <div className="text-center">

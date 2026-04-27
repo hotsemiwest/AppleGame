@@ -20,6 +20,8 @@ export type GamePhase = 'start' | 'playing' | 'ended'
 
 export type ParticleTier = 'normal' | 'combo' | 'big'
 
+export type ParticleShape = 'circle' | 'diamond'
+
 export interface Particle {
   id: string
   row: number
@@ -31,6 +33,9 @@ export interface Particle {
   duration: number
   tier: ParticleTier
   isOpponent?: boolean
+  shape?: ParticleShape
+  delay?: number    // animation-delay in ms
+  rotation?: number // initial rotation in degrees (used for spinning diamonds)
 }
 
 export interface ScorePopup {
