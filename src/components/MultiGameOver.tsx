@@ -75,7 +75,7 @@ export function MultiGameOver() {
           <button
             onClick={rematch}
             disabled={opponentLeft}
-            className={`flex-1 py-3.5 rounded-2xl text-base font-black transition-all active:scale-95 shadow-lg ${opponentLeft ? 'cursor-not-allowed opacity-50' : 'text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-400 hover:to-indigo-500'}`}
+            className={`flex-1 py-3.5 rounded-2xl text-base font-black transition-all active:scale-95 shadow-lg ${opponentLeft ? 'cursor-not-allowed opacity-50' : 'text-white bg-gradient-to-r from-blue-500 to-indigo-600'}`}
             style={opponentLeft ? { background: C.surfaceRaised, color: C.textFaint } : {}}
           >
             🔄 다시하기

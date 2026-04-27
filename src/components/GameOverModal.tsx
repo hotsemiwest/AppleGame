@@ -123,13 +123,13 @@ export function GameOverModal() {
             <div className="mb-4">
               <button
                 onClick={() => setShowAuth(true)}
-                className="w-full py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 mb-2"
+                className="w-full py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 mb-2"
               >
                 🏆 로그인 후 랭킹 등록하기
               </button>
               <button
                 onClick={() => setPhase('leaderboard')}
-                className="w-full py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-gray-300 transition-colors"
+                className="w-full py-2.5 rounded-xl text-sm font-semibold text-gray-400 transition-colors"
               >
                 건너뛰기
               </button>
@@ -198,7 +198,7 @@ export function GameOverModal() {
             </button>
             <button
               onClick={startGame}
-              className="flex-1 py-3.5 rounded-2xl text-base font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 shadow-lg"
+              className="flex-1 py-3.5 rounded-2xl text-base font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg"
             >
               다시 시작
             </button>

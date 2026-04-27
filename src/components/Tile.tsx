@@ -5,7 +5,7 @@ import { TILE_COLORS } from '../theme/tokens'
 const TEXT_STYLE: React.CSSProperties = {
   userSelect: 'none',
   pointerEvents: 'none',
-  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+  fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
 }
 
 const SVG_STYLE: React.CSSProperties = {

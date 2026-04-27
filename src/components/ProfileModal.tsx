@@ -109,7 +109,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 <button
                   onClick={handleSaveName}
                   disabled={saving}
-                  className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-green-600 hover:bg-green-500 transition-all disabled:opacity-50"
+                  className="px-3 py-1 rounded-lg text-xs font-semibold text-white bg-green-600 transition-all disabled:opacity-50"
                 >
                   {saving ? '저장 중...' : '저장'}
                 </button>
@@ -150,7 +150,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 onClick={() => setTab('score')}
                 className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
                 style={tab === 'score' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
-              >⏱ 스코어 어택</button>
+              >⏱️ 스코어 어택</button>
               <button
                 onClick={() => setTab('time')}
                 className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"

@@ -114,9 +114,9 @@ export function StartBoard() {
           <div className="flex gap-2">
             <button
               onClick={startScoreAttack}
-              className="flex-1 py-4 rounded-2xl text-lg font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 shadow-lg shadow-green-500/20"
+              className="flex-1 py-4 rounded-2xl text-lg font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg shadow-green-500/20"
             >
-              ⏱ 스코어 어택
+              ⏱️ 스코어 어택
             </button>
             <button
               onClick={startTimeAttack}

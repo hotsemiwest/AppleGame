@@ -135,7 +135,7 @@ export function Header() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setShowProfile(true)}
-                      className="px-3 py-2 rounded-lg text-sm transition-all active:scale-95 hover:bg-gray-600"
+                      className="px-3 py-2 rounded-lg text-sm transition-all active:scale-95"
                       style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
                     >
                       <span className={`font-semibold ${theme === 'light' ? 'text-gray-700' : 'text-gray-200'}`}>👤 {displayName}</span>
@@ -217,7 +217,7 @@ export function Header() {
                 onClick={() => setLeaderboardTab('score')}
                 className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
                 style={leaderboardTab === 'score' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
-              >⏱ 스코어 어택</button>
+              >⏱️ 스코어 어택</button>
               <button
                 onClick={() => setLeaderboardTab('time')}
                 className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"

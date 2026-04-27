@@ -69,7 +69,7 @@ export function MultiLobby() {
               <button
                 onClick={startGame}
                 disabled={!opponentName}
-                className="w-full py-3.5 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full py-3.5 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 게임 시작
               </button>
@@ -92,7 +92,7 @@ export function MultiLobby() {
 
           <button
             onClick={leaveRoom}
-            className="w-full py-2.5 rounded-xl text-sm font-semibold text-gray-400 hover:text-gray-300 transition-colors"
+            className="w-full py-2.5 rounded-xl text-sm font-semibold text-gray-400 transition-colors"
           >
             나가기
           </button>

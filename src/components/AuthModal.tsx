@@ -104,7 +104,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
             </p>
             <button
               onClick={handleGoToLogin}
-              className="w-full py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95"
+              className="w-full py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95"
             >
               로그인하러 가기
             </button>
@@ -178,7 +178,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
                 <button
                   type="button"
                   onClick={() => setShowPassword(p => !p)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors text-xs font-semibold"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition-colors text-xs font-semibold"
                 >
                   {showPassword ? '숨기기' : '보기'}
                 </button>
@@ -200,7 +200,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 disabled:opacity-50"
               >
                 {loading ? '처리 중...' : tab === 'login' ? '로그인' : '가입하기'}
               </button>

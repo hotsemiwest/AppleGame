@@ -94,7 +94,7 @@ export function MultiGame() {
       <div className="w-full flex justify-end mb-2">
         <button
           onClick={forfeit}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-300 transition-colors"
+          className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 transition-colors"
           style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
         >
           나가기

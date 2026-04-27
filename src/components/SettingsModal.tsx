@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useThemeStore } from '../store/themeStore'
 import { TILE_COLORS, BOARD_BG, C } from '../theme/tokens'
 import { Tile } from './Tile'
+import { SegmentedControl } from './SegmentedControl'
 
 const PREVIEW_COLS = 8
 const PREVIEW_ROWS = 4
@@ -10,8 +11,8 @@ const TILE_S = 52
 const GAP_S = 2
 const CELL_S = TILE_S + GAP_S
 const SCALE = 0.68
-const RAW_W = PREVIEW_COLS * CELL_S - GAP_S  // 430
-const RAW_H = PREVIEW_ROWS * CELL_S - GAP_S  // 214
+const RAW_W = PREVIEW_COLS * CELL_S - GAP_S
+const RAW_H = PREVIEW_ROWS * CELL_S - GAP_S
 
 const PREVIEW_VALUES = [
   [1, 3, 2, 5, 4, 3, 2, 1],
@@ -19,9 +20,6 @@ const PREVIEW_VALUES = [
   [1, 3, 5, 4, 3, 5, 4, 1],
   [2, 3, 4, 3, 4, 3, 2, 1],
 ]
-
-const BTN_BASE = 'flex-1 py-2 rounded-xl text-sm font-bold transition-all active:scale-95'
-const BTN_ON   = 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
 
 interface Props { onClose: () => void }
 
@@ -50,7 +48,7 @@ export function SettingsModal({ onClose }: Props) {
           <h2 className="text-xl font-black" style={{ color: C.textPrimary }}>⚙️ 설정</h2>
           <button
             onClick={onClose}
-            className="text-2xl leading-none transition-all hover:opacity-60"
+            className="text-2xl leading-none transition-all"
             style={{ color: C.textMuted }}
           >
             ✕
@@ -60,20 +58,28 @@ export function SettingsModal({ onClose }: Props) {
         {/* 테마 */}
         <div className="mb-5">
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">테마</div>
-          <div className="flex gap-2">
-            <button onClick={() => setTheme('dark')}  className={`${BTN_BASE} ${theme === 'dark'  ? BTN_ON : 'panel-hover'}`} style={theme === 'dark'  ? {} : { background: C.surfaceRaised, color: C.textSub }}>🌙 다크</button>
-            <button onClick={() => setTheme('light')} className={`${BTN_BASE} ${theme === 'light' ? BTN_ON : 'panel-hover'}`} style={theme === 'light' ? {} : { background: C.surfaceRaised, color: C.textSub }}>☀️ 라이트</button>
-          </div>
+          <SegmentedControl
+            options={[
+              { value: 'dark',  label: '🌙 다크' },
+              { value: 'light', label: '☀️ 라이트' },
+            ]}
+            value={theme}
+            onChange={setTheme}
+          />
         </div>
 
         {/* 타일 모양 */}
         <div className="mb-5">
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">타일 모양</div>
-          <div className="flex gap-2">
-            <button onClick={() => setTileShape('apple')}  className={`${BTN_BASE} ${tileShape === 'apple'  ? BTN_ON : 'panel-hover'}`} style={tileShape === 'apple'  ? {} : { background: C.surfaceRaised, color: C.textSub }}>🍎 사과</button>
-            <button onClick={() => setTileShape('circle')} className={`${BTN_BASE} ${tileShape === 'circle' ? BTN_ON : 'panel-hover'}`} style={tileShape === 'circle' ? {} : { background: C.surfaceRaised, color: C.textSub }}>● 원형</button>
-            <button onClick={() => setTileShape('square')} className={`${BTN_BASE} ${tileShape === 'square' ? BTN_ON : 'panel-hover'}`} style={tileShape === 'square' ? {} : { background: C.surfaceRaised, color: C.textSub }}>■ 사각형</button>
-          </div>
+          <SegmentedControl
+            options={[
+              { value: 'apple',  label: '🍎 사과' },
+              { value: 'circle', label: '● 원형' },
+              { value: 'square', label: '■ 사각형' },
+            ]}
+            value={tileShape}
+            onChange={setTileShape}
+          />
         </div>
 
         {/* 타일 색상 */}
@@ -103,10 +109,14 @@ export function SettingsModal({ onClose }: Props) {
         {/* 조합 수 표시 */}
         <div className="mb-5">
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">게임 중 조합 수 표시</div>
-          <div className="flex gap-2">
-            <button onClick={() => setShowHintCount(true)}  className={`${BTN_BASE} ${showHintCount  ? BTN_ON : 'panel-hover'}`} style={showHintCount  ? {} : { background: C.surfaceRaised, color: C.textSub }}>켜기</button>
-            <button onClick={() => setShowHintCount(false)} className={`${BTN_BASE} ${!showHintCount ? BTN_ON : 'panel-hover'}`} style={!showHintCount ? {} : { background: C.surfaceRaised, color: C.textSub }}>끄기</button>
-          </div>
+          <SegmentedControl
+            options={[
+              { value: 'on',  label: '켜기' },
+              { value: 'off', label: '끄기' },
+            ]}
+            value={showHintCount ? 'on' : 'off'}
+            onChange={v => setShowHintCount(v === 'on')}
+          />
         </div>
 
         {/* 미리보기 */}

@@ -67,7 +67,7 @@ export function ParticleLayer() {
               textShadow: isBig
                 ? `0 0 12px ${C.popupBig}, 0 0 24px ${C.amber}, 0 2px 6px rgba(0,0,0,0.9)`
                 : `0 0 8px ${C.popupCombo}, 0 2px 4px rgba(0,0,0,0.8)`,
-              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+              fontFamily: "'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
               whiteSpace: 'nowrap',
             }}
           >
