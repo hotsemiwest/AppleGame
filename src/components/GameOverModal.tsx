@@ -105,7 +105,7 @@ export function GameOverModal() {
             </div>
             <div className="flex-1 rounded-2xl py-3 text-center" style={{ background: C.surfaceRaised }}>
               <div className="text-gray-400 text-xs uppercase tracking-widest">최고기록</div>
-              <div className="text-3xl font-black mt-0.5" style={{ color: isTimeAttack ? C.orange : C.accentYellow }}>
+              <div className="text-4xl font-black mt-0.5" style={{ color: C.accentYellow }}>
                 {isTimeAttack
                   ? (personalBestTime > 0 ? formatTime(personalBestTime) : '-')
                   : personalBest}

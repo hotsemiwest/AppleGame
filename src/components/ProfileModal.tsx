@@ -213,7 +213,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 <div className="flex gap-3">
                   <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                     <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 기록</div>
-                    <div className="text-3xl font-black" style={{ color: C.orange }}>
+                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
                       {data.bestTimeSeconds !== null ? formatTime(data.bestTimeSeconds) : '-'}
                     </div>
                   </div>
