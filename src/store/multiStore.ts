@@ -25,6 +25,7 @@ export interface MultiState {
   error: string | null
   deadlockNotice: boolean
   countdownValue: number
+  opponentLeft: boolean
 
   openLobby: () => void
   createRoom: () => Promise<void>
@@ -75,18 +76,26 @@ function subscribeChannel(roomCode: string) {
       const s = useMultiStore.getState()
       const remoteBoard: Board = payload.board
 
-      // 데드락은 완전히 새로운 보드이므로 머지 없이 교체
-      // 일반 move broadcast는 OR-null 병합으로 동시 제거 충돌 해결
       const mergedBoard: Board = (s.board && payload.reason !== 'deadlock')
         ? s.board.map((row, r) =>
             row.map((cell, c) => (cell === null || remoteBoard[r]?.[c] === null ? null : cell))
           )
         : remoteBoard
 
-      // myScore는 로컬에서만 관리 — 상대 브로드캐스트의 stale 값으로 덮어쓰지 않음
-      const opponentScore = s.isHost ? payload.guest_score : payload.host_score
+      // 동시 제거 충돌: 내 보드에서 이미 null인 셀을 상대도 제거했다면 → 호스트 우선 적용
+      // 호스트: 상대(게스트) 점수에서 중복 제거 셀만큼 차감
+      // 게스트: 내 점수에서 중복 제거 셀만큼 차감
+      const contested = payload.reason !== 'deadlock'
+        ? (payload.cleared_cells as { row: number; col: number }[] | undefined)
+            ?.filter(cell => s.board?.[cell.row]?.[cell.col] === null).length ?? 0
+        : 0
 
-      useMultiStore.setState({ board: mergedBoard, opponentScore })
+      const opponentScore = Math.max(0,
+        (s.isHost ? payload.guest_score : payload.host_score) - (s.isHost ? contested : 0)
+      )
+      const myScore = Math.max(0, s.myScore - (s.isHost ? 0 : contested))
+
+      useMultiStore.setState({ board: mergedBoard, opponentScore, myScore })
 
       if (payload.cleared_cells?.length) {
         useGameStore.getState().spawnOpponentParticles(payload.cleared_cells)
@@ -112,8 +121,23 @@ function subscribeChannel(roomCode: string) {
       opponentDragCallback?.(payload.rect as SelectionRect | null)
     })
     .on('broadcast', { event: 'leave' }, ({ payload }) => {
-      if (payload.player_id !== myId) {
+      if (payload.player_id === myId) return
+      const s = useMultiStore.getState()
+      if (s.phase === 'playing' || s.phase === 'countdown') {
         endGame('me')
+      } else if (s.phase === 'ended') {
+        useMultiStore.setState({ opponentLeft: true })
+      } else if (s.phase === 'waiting') {
+        channel?.unsubscribe()
+        channel = null
+        useMultiStore.setState({
+          phase: 'off', roomCode: null, isHost: false,
+          myId: null, myName: null, opponentId: null, opponentName: null,
+          board: null, myScore: 0, opponentScore: 0, timeLeft: GAME_DURATION,
+          winner: null, error: '상대방이 게임을 나갔습니다.', deadlockNotice: false,
+          countdownValue: 3, opponentLeft: false,
+        })
+        opponentDragCallback?.(null)
       }
     })
     .on('broadcast', { event: 'rematch' }, () => {
@@ -126,6 +150,7 @@ function subscribeChannel(roomCode: string) {
         winner: null,
         deadlockNotice: false,
         countdownValue: 3,
+        opponentLeft: false,
       })
     })
     .on(
@@ -156,10 +181,12 @@ function subscribeChannel(roomCode: string) {
     )
     .on('presence', { event: 'leave' }, ({ leftPresences }) => {
       const s = useMultiStore.getState()
-      if (s.phase !== 'playing') return
       const opId = s.opponentId
-      if (leftPresences.some((p: Record<string, unknown>) => p['player_id'] === opId)) {
+      if (!leftPresences.some((p: Record<string, unknown>) => p['player_id'] === opId)) return
+      if (s.phase === 'playing' || s.phase === 'countdown') {
         endGame('me')
+      } else if (s.phase === 'ended') {
+        useMultiStore.setState({ opponentLeft: true })
       }
     })
     .subscribe(async (status) => {
@@ -213,6 +240,7 @@ export const useMultiStore = create<MultiState>((set, get) => ({
   error: null,
   deadlockNotice: false,
   countdownValue: 3,
+  opponentLeft: false,
 
   openLobby: () => {
     const { id, name } = getMe()
@@ -338,6 +366,7 @@ export const useMultiStore = create<MultiState>((set, get) => ({
   },
 
   rematch: () => {
+    if (get().opponentLeft) return
     channel?.send({ type: 'broadcast', event: 'rematch', payload: {} })
     set({
       phase: 'waiting',
@@ -382,6 +411,7 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       error: null,
       deadlockNotice: false,
       countdownValue: 3,
+      opponentLeft: false,
     })
     opponentDragCallback?.(null)
   },
