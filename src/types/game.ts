@@ -17,6 +17,8 @@ export interface NormalizedRect {
 }
 
 export type GamePhase = 'start' | 'playing' | 'ended'
+export type GameMode = 'score' | 'time'
+export const TIME_ATTACK_TARGET = 100
 
 export type ParticleTier = 'normal' | 'combo' | 'big'
 

@@ -1,5 +1,11 @@
 import { Board, SelectionRect, NormalizedRect, CellRef, TARGET_SUM } from '../types/game'
 
+export function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60)
+  const s = seconds % 60
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
 export function normalizeRect(rect: SelectionRect): NormalizedRect {
   return {
     minRow: Math.min(rect.startRow, rect.endRow),

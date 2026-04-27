@@ -3,22 +3,16 @@ import { createPortal } from 'react-dom'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { useThemeStore } from '../store/themeStore'
-import { countSolutions } from '../utils/gameLogic'
+import { countSolutions, formatTime } from '../utils/gameLogic'
+import { TIME_ATTACK_TARGET } from '../types/game'
 import { Leaderboard } from './Leaderboard'
 import { AuthModal } from './AuthModal'
 import { ProfileModal } from './ProfileModal'
 import { SettingsModal } from './SettingsModal'
-import { ScoreEntry } from '../lib/supabase'
 import { C, G } from '../theme/tokens'
 
-function formatTime(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${s.toString().padStart(2, '0')}`
-}
-
 export function Header() {
-  const { score, personalBest, timeLeft, gamePhase, startGame, goHome, board } = useGameStore()
+  const { score, personalBest, personalBestTime, timeLeft, elapsedTime, gameMode, gamePhase, startGame, goHome, board } = useGameStore()
   const { user, displayName, signOut, setPendingAuth } = useAuthStore()
   const theme = useThemeStore(s => s.theme)
   const showHintCount = useThemeStore(s => s.showHintCount)
@@ -28,12 +22,13 @@ export function Header() {
     return countSolutions(board)
   }, [board, showHintCount, gamePhase])
   const [showLeaderboard, setShowLeaderboard] = useState(false)
+  const [leaderboardTab, setLeaderboardTab] = useState<'score' | 'time'>('score')
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [selectedUser, setSelectedUser] = useState<ScoreEntry | null>(null)
+  const [selectedUser, setSelectedUser] = useState<{ user_id: string; display_name: string } | null>(null)
 
-  function handleLeaderboardUserClick(entry: ScoreEntry) {
+  function handleLeaderboardUserClick(entry: { user_id: string; display_name: string }) {
     setShowLeaderboard(false)
     setSelectedUser(entry)
   }
@@ -50,14 +45,33 @@ export function Header() {
           <div className="flex gap-6 flex-1">
             {!isStart ? (
               <>
-                <div className="text-center">
-                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">점수</div>
-                  <div className={`text-3xl font-black score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{score}</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
-                  <div className="text-3xl font-black" style={{ color: C.accentYellow }}>{personalBest}</div>
-                </div>
+                {gameMode === 'time' ? (
+                  <>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">진행도</div>
+                      <div className={`text-3xl font-black score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                        {score}<span className="text-base font-semibold text-gray-400">/{TIME_ATTACK_TARGET}</span>
+                      </div>
+                    </div>
+                    {personalBestTime > 0 && (
+                      <div className="text-center">
+                        <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
+                        <div className="text-3xl font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">점수</div>
+                      <div className={`text-3xl font-black score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{score}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
+                      <div className="text-3xl font-black" style={{ color: C.accentYellow }}>{personalBest}</div>
+                    </div>
+                  </>
+                )}
                 {showHintCount && gamePhase === 'playing' && (
                   <div className="text-center">
                     <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">조합 수</div>
@@ -76,16 +90,25 @@ export function Header() {
           {/* 중앙: 타이머 */}
           <div className="text-center">
             {!isStart && (
-              <>
-                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">남은 시간</div>
-                <div
-                  className={`text-4xl font-black tabular-nums transition-colors ${
-                    isUrgent ? 'text-red-400 timer-shake' : theme === 'light' ? 'text-gray-900' : 'text-white'
-                  }`}
-                >
-                  {formatTime(timeLeft)}
-                </div>
-              </>
+              gameMode === 'time' ? (
+                <>
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">경과 시간</div>
+                  <div className={`text-4xl font-black tabular-nums ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                    {formatTime(elapsedTime)}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">남은 시간</div>
+                  <div
+                    className={`text-4xl font-black tabular-nums transition-colors ${
+                      isUrgent ? 'text-red-400 timer-shake' : theme === 'light' ? 'text-gray-900' : 'text-white'
+                    }`}
+                  >
+                    {formatTime(timeLeft)}
+                  </div>
+                </>
+              )
             )}
           </div>
 
@@ -165,10 +188,12 @@ export function Header() {
             <div
               className="h-full rounded-full transition-all duration-1000 ease-linear"
               style={{
-                width: `${(timeLeft / 120) * 100}%`,
-                background: isUrgent
-                  ? G.timerUrgent
-                  : G.timerNormal,
+                width: gameMode === 'time'
+                  ? `${Math.min((score / TIME_ATTACK_TARGET) * 100, 100)}%`
+                  : `${(timeLeft / 120) * 100}%`,
+                background: gameMode === 'time'
+                  ? `linear-gradient(90deg, ${C.orange}, ${C.amber})`
+                  : isUrgent ? G.timerUrgent : G.timerNormal,
               }}
             />
           </div>
@@ -186,8 +211,20 @@ export function Header() {
             style={{ maxWidth: 360, maxHeight: '80vh', overflowY: 'auto', background: C.surface, border: `1px solid ${C.borderStrong}` }}
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="text-xl font-black text-center mb-4" style={{ color: C.textPrimary }}>🏆 TOP 10</h2>
-            <Leaderboard onUserClick={handleLeaderboardUserClick} />
+            <h2 className="text-xl font-black text-center mb-3" style={{ color: C.textPrimary }}>🏆 TOP 10</h2>
+            <div className="flex gap-1 mb-3 p-1 rounded-xl" style={{ background: C.surfaceRaised }}>
+              <button
+                onClick={() => setLeaderboardTab('score')}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={leaderboardTab === 'score' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
+              >⏱ 스코어 어택</button>
+              <button
+                onClick={() => setLeaderboardTab('time')}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={leaderboardTab === 'time' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
+              >🎯 타임 어택</button>
+            </div>
+            <Leaderboard mode={leaderboardTab} onUserClick={handleLeaderboardUserClick} />
             <button
               onClick={() => setShowLeaderboard(false)}
               className="w-full mt-4 py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 panel-hover"

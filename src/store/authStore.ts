@@ -14,6 +14,17 @@ async function restorePersonalBest(userId: string) {
   }
 }
 
+async function restoreTimeAttackBest(userId: string) {
+  const { data } = await supabase
+    .from('time_attack_scores')
+    .select('best_time_seconds')
+    .eq('user_id', userId)
+    .maybeSingle()
+  if (data?.best_time_seconds) {
+    useGameStore.getState().setPersonalBestTime(data.best_time_seconds)
+  }
+}
+
 export interface PendingAuth {
   notice: string
   openLogin: boolean
@@ -45,7 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user ?? null
       setPersonalBestPersistence(!!user)
-      if (user) restorePersonalBest(user.id)
+      if (user) { restorePersonalBest(user.id); restoreTimeAttackBest(user.id) }
       set({
         user,
         displayName: user?.user_metadata?.display_name ?? null,
@@ -56,7 +67,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null
       setPersonalBestPersistence(!!user)
-      if (user) restorePersonalBest(user.id)
+      if (user) { restorePersonalBest(user.id); restoreTimeAttackBest(user.id) }
       const update: Partial<AuthState> = {
         user,
         displayName: user?.user_metadata?.display_name ?? null,

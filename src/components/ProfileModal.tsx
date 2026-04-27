@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { fetchProfile, fetchPublicProfile, ProfileData, checkDisplayNameTaken } from '../lib/supabase'
 import { ScoreChart } from './ScoreChart'
 import { C } from '../theme/tokens'
+import { formatTime } from '../utils/gameLogic'
 
 interface Props {
   onClose: () => void
@@ -35,6 +36,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
   const [data, setData] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [tab, setTab] = useState<'score' | 'time'>('score')
   const [editingName, setEditingName] = useState<string | null>(null)
   const [nameError, setNameError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -142,61 +144,101 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
 
         {data && !loading && (
           <>
-            {/* 랭킹 */}
-            {data.rank !== null ? (
-              <div className="text-center py-2">
-                <div
-                  className="text-5xl font-black"
-                  style={{ color: rankColor(data.rank) }}
-                >
-                  {data.rank <= 3 ? RANK_MEDALS[data.rank] : null}
-                  {data.rank > 3 ? rankLabel(data.rank) : null}
-                </div>
-                {data.rank <= 3 && (
-                  <div className="text-lg font-black mt-1" style={{ color: rankColor(data.rank) }}>
-                    #{data.rank}위
+            {/* 탭 */}
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: C.surfaceRaised }}>
+              <button
+                onClick={() => setTab('score')}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={tab === 'score' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
+              >⏱ 스코어 어택</button>
+              <button
+                onClick={() => setTab('time')}
+                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
+                style={tab === 'time' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
+              >🎯 타임 어택</button>
+            </div>
+
+            {tab === 'score' && (
+              <>
+                {data.rank !== null ? (
+                  <div className="text-center py-2">
+                    <div className="text-5xl font-black" style={{ color: rankColor(data.rank) }}>
+                      {data.rank <= 3 ? RANK_MEDALS[data.rank] : null}
+                      {data.rank > 3 ? rankLabel(data.rank) : null}
+                    </div>
+                    {data.rank <= 3 && <div className="text-lg font-black mt-1" style={{ color: rankColor(data.rank) }}>#{data.rank}위</div>}
+                    <div className="text-xs text-gray-500 mt-1">글로벌 랭킹</div>
                   </div>
+                ) : (
+                  <div className="text-center text-gray-500 text-sm py-2">아직 랭킹이 없습니다</div>
                 )}
-                <div className="text-xs text-gray-500 mt-1">글로벌 랭킹</div>
-              </div>
-            ) : (
-              <div className="text-center text-gray-500 text-sm py-2">아직 랭킹이 없습니다</div>
+                <div className="flex gap-3">
+                  <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
+                    <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 점수</div>
+                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>{data.bestScore ?? '-'}</div>
+                  </div>
+                  <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
+                    <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">플레이 횟수</div>
+                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
+                      {data.playCount}<span className="text-base font-semibold text-gray-400 ml-1">회</span>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-3">점수 히스토리</div>
+                  <div className="rounded-2xl p-3" style={{ background: C.surfaceDim, border: `1px solid ${C.borderFaint}` }}>
+                    <ScoreChart history={data.history} />
+                  </div>
+                  {data.history.length > 0 && (
+                    <div className="text-xs text-gray-600 text-right mt-1.5">★ 최고점 &nbsp;• 최근 {data.history.length}게임</div>
+                  )}
+                </div>
+              </>
             )}
 
-            {/* 스탯 */}
-            <div className="flex gap-3">
-              <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 점수</div>
-                <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
-                  {data.bestScore ?? '-'}
+            {tab === 'time' && (
+              <>
+                {data.timeAttackRank !== null ? (
+                  <div className="text-center py-2">
+                    <div className="text-5xl font-black" style={{ color: rankColor(data.timeAttackRank) }}>
+                      {data.timeAttackRank <= 3 ? RANK_MEDALS[data.timeAttackRank] : null}
+                      {data.timeAttackRank > 3 ? rankLabel(data.timeAttackRank) : null}
+                    </div>
+                    {data.timeAttackRank <= 3 && <div className="text-lg font-black mt-1" style={{ color: rankColor(data.timeAttackRank) }}>#{data.timeAttackRank}위</div>}
+                    <div className="text-xs text-gray-500 mt-1">글로벌 랭킹</div>
+                  </div>
+                ) : (
+                  <div className="text-center text-gray-500 text-sm py-2">아직 랭킹이 없습니다</div>
+                )}
+                <div className="flex gap-3">
+                  <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
+                    <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 기록</div>
+                    <div className="text-3xl font-black" style={{ color: C.orange }}>
+                      {data.bestTimeSeconds !== null ? formatTime(data.bestTimeSeconds) : '-'}
+                    </div>
+                  </div>
+                  <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
+                    <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">플레이 횟수</div>
+                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
+                      {data.timeAttackPlayCount}<span className="text-base font-semibold text-gray-400 ml-1">회</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
-                <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">플레이 횟수</div>
-                <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
-                  {data.playCount}
-                  <span className="text-base font-semibold text-gray-400 ml-1">회</span>
+                <div>
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-3">기록 히스토리</div>
+                  <div className="rounded-2xl p-3" style={{ background: C.surfaceDim, border: `1px solid ${C.borderFaint}` }}>
+                    <ScoreChart
+                      history={data.timeAttackHistory.map(h => ({ score: h.time_seconds, played_at: h.played_at }))}
+                      inverse
+                      formatValue={formatTime}
+                    />
+                  </div>
+                  {data.timeAttackHistory.length > 0 && (
+                    <div className="text-xs text-gray-600 text-right mt-1.5">★ 최고기록 &nbsp;• 최근 {data.timeAttackHistory.length}게임 (낮을수록 좋음)</div>
+                  )}
                 </div>
-              </div>
-            </div>
-
-            {/* 점수 히스토리 */}
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-3">
-                점수 히스토리
-              </div>
-              <div
-                className="rounded-2xl p-3"
-                style={{ background: C.surfaceDim, border: `1px solid ${C.borderFaint}` }}
-              >
-                <ScoreChart history={data.history} />
-              </div>
-              {data.history.length > 0 && (
-                <div className="text-xs text-gray-600 text-right mt-1.5">
-                  ★ 최고점 &nbsp;• 최근 {data.history.length}게임
-                </div>
-              )}
-            </div>
+              </>
+            )}
           </>
         )}
 

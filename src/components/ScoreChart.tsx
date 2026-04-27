@@ -6,7 +6,13 @@ export interface HistoryEntry {
   played_at: string
 }
 
-export function ScoreChart({ history }: { history: HistoryEntry[] }) {
+interface ScoreChartProps {
+  history: HistoryEntry[]
+  inverse?: boolean           // true = lower is better (time attack)
+  formatValue?: (v: number) => string
+}
+
+export function ScoreChart({ history, inverse = false, formatValue }: ScoreChartProps) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
 
   if (history.length === 0) {
@@ -35,8 +41,9 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
     .map((s, i) => `${i === 0 ? 'M' : 'L'} ${cx(i).toFixed(1)} ${cy(s).toFixed(1)}`)
     .join(' ')
 
-  const bestScore = Math.max(...scores)
-  const bestIdx = scores.lastIndexOf(bestScore)
+  const bestScore = inverse ? Math.min(...scores) : Math.max(...scores)
+  const bestIdx = inverse ? scores.indexOf(bestScore) : scores.lastIndexOf(bestScore)
+  const fmt = formatValue ?? ((v: number) => String(v))
 
   const yTicks = Array.from(new Set([minS, Math.round((minS + maxS) / 2), maxS]))
 
@@ -80,7 +87,7 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
       {yTicks.map(s => (
         <text key={s} x={PL - 4} y={cy(s)} textAnchor="end" dominantBaseline="middle"
           fill={C.chartLabel} fontSize={9}>
-          {s}
+          {fmt(s)}
         </text>
       ))}
 
@@ -141,7 +148,7 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
             fontSize={10}
             fontWeight="bold"
           >
-            {scores[hoveredIdx]}
+            {fmt(scores[hoveredIdx])}
           </text>
         </>
       )}

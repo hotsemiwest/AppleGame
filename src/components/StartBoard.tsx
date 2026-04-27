@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { useMultiStore } from '../store/multiStore'
 import { useThemeStore } from '../store/themeStore'
 import { BOARD_BG, C, G } from '../theme/tokens'
+import { formatTime } from '../utils/gameLogic'
 import { AuthModal } from './AuthModal'
 
 const BOARD_HEIGHT = 538
@@ -11,7 +12,7 @@ const BOARD_HEIGHT = 538
 type MultiAfterLogin = 'create' | 'join' | null
 
 export function StartBoard() {
-  const { personalBest, startGame } = useGameStore()
+  const { personalBest, personalBestTime, startScoreAttack, startTimeAttack } = useGameStore()
   const theme = useThemeStore(s => s.theme)
   const { user, pendingAuth, setPendingAuth } = useAuthStore()
   const { createRoom, joinRoom, error: multiError, clearError } = useMultiStore()
@@ -97,7 +98,12 @@ export function StartBoard() {
 
           {personalBest > 0 && (
             <p className="font-semibold mt-5" style={{ color: C.accentYellow }}>
-              개인 최고기록: {personalBest}점
+              스코어 어택 최고: {personalBest}점
+            </p>
+          )}
+          {personalBestTime > 0 && (
+            <p className="font-semibold mt-1" style={{ color: C.orange }}>
+              타임 어택 최고: {formatTime(personalBestTime)}
             </p>
           )}
         </div>
@@ -105,12 +111,21 @@ export function StartBoard() {
         {/* 하단: 버튼 영역 */}
         <div className="flex flex-col gap-3 w-full max-w-lg">
           {/* 혼자 하기 */}
-          <button
-            onClick={startGame}
-            className="w-full py-4 rounded-2xl text-xl font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 shadow-lg shadow-green-500/20"
-          >
-            혼자 하기
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={startScoreAttack}
+              className="flex-1 py-4 rounded-2xl text-lg font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 transition-all active:scale-95 shadow-lg shadow-green-500/20"
+            >
+              ⏱ 스코어 어택
+            </button>
+            <button
+              onClick={startTimeAttack}
+              className="flex-1 py-4 rounded-2xl text-lg font-black text-white transition-all active:scale-95 shadow-lg"
+              style={{ background: `linear-gradient(135deg, ${C.orange}, ${C.amber})` }}
+            >
+              🎯 타임 어택
+            </button>
+          </div>
 
           {/* 구분선 */}
           <div className="flex items-center gap-3 my-1">

@@ -52,21 +52,54 @@ export async function submitScore(displayName: string, score: number): Promise<v
   if (error && error.message !== 'rate_limit_exceeded') throw error
 }
 
+export interface TimeAttackEntry {
+  user_id: string
+  display_name: string
+  best_time_seconds: number
+}
+
+export async function fetchTopTimeAttackScores(): Promise<TimeAttackEntry[]> {
+  const { data, error } = await supabase
+    .from('time_attack_scores')
+    .select('user_id, display_name, best_time_seconds')
+    .order('best_time_seconds', { ascending: true })
+    .limit(10)
+  if (error) throw error
+  return data ?? []
+}
+
+export async function submitTimeAttackScore(displayName: string, timeSeconds: number): Promise<void> {
+  if (timeSeconds < 1) return
+  const { error } = await supabase.rpc('submit_time_attack_score', {
+    p_display_name: displayName,
+    p_time_seconds: timeSeconds,
+  })
+  if (error && error.message !== 'rate_limit_exceeded') throw error
+}
+
 export interface ProfileData {
   bestScore: number | null
   rank: number | null
   playCount: number
   history: { score: number; played_at: string }[]
+  bestTimeSeconds: number | null
+  timeAttackRank: number | null
+  timeAttackPlayCount: number
+  timeAttackHistory: { time_seconds: number; played_at: string }[]
 }
 
 async function fetchProfileByUserId(userId: string): Promise<ProfileData> {
-  const [scoreRes, historyRes, countRes] = await Promise.all([
+  const [scoreRes, historyRes, countRes, taScoreRes, taHistoryRes, taCountRes] = await Promise.all([
     supabase.from('scores').select('score').eq('user_id', userId).maybeSingle(),
     supabase.from('score_history').select('score, played_at').eq('user_id', userId).order('played_at', { ascending: true }).limit(30),
     supabase.from('score_history').select('*', { count: 'exact', head: true }).eq('user_id', userId),
+    supabase.from('time_attack_scores').select('best_time_seconds').eq('user_id', userId).maybeSingle(),
+    supabase.from('time_attack_history').select('time_seconds, played_at').eq('user_id', userId).order('played_at', { ascending: true }).limit(30),
+    supabase.from('time_attack_history').select('*', { count: 'exact', head: true }).eq('user_id', userId),
   ])
 
   const bestScore = scoreRes.data?.score ?? null
+  const bestTimeSeconds = taScoreRes.data?.best_time_seconds ?? null
 
   let rank: number | null = null
   if (bestScore !== null) {
@@ -77,11 +110,24 @@ async function fetchProfileByUserId(userId: string): Promise<ProfileData> {
     rank = (count ?? 0) + 1
   }
 
+  let timeAttackRank: number | null = null
+  if (bestTimeSeconds !== null) {
+    const { count } = await supabase
+      .from('time_attack_scores')
+      .select('*', { count: 'exact', head: true })
+      .lt('best_time_seconds', bestTimeSeconds)
+    timeAttackRank = (count ?? 0) + 1
+  }
+
   return {
     bestScore,
     rank,
     playCount: countRes.count ?? 0,
     history: historyRes.data ?? [],
+    bestTimeSeconds,
+    timeAttackRank,
+    timeAttackPlayCount: taCountRes.count ?? 0,
+    timeAttackHistory: taHistoryRes.data ?? [],
   }
 }
 

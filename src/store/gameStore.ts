@@ -1,15 +1,15 @@
 import { create } from 'zustand'
 import {
-  Board, GamePhase, Particle, ParticleTier, ScorePopup,
-  SelectionRect, CellRef, GAME_DURATION,
+  Board, GamePhase, GameMode, Particle, ParticleTier, ScorePopup,
+  SelectionRect, CellRef, GAME_DURATION, TIME_ATTACK_TARGET,
 } from '../types/game'
 import { PARTICLE_COLORS } from '../theme/tokens'
 import { generateBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect } from '../utils/gameLogic'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
+const TIME_ATTACK_BEST_KEY = 'timeAttackBest'
 
-// authStore에서 로그인 상태에 따라 제어 (순환 참조 방지용 모듈 변수)
 let _persistBest = false
 export function setPersonalBestPersistence(persist: boolean) {
   _persistBest = persist
@@ -17,6 +17,10 @@ export function setPersonalBestPersistence(persist: boolean) {
 
 function loadPersonalBest(): number {
   return parseInt(localStorage.getItem(PERSONAL_BEST_KEY) ?? '0', 10)
+}
+
+function loadPersonalBestTime(): number {
+  return parseInt(localStorage.getItem(TIME_ATTACK_BEST_KEY) ?? '0', 10)
 }
 
 function getTier(count: number): ParticleTier {
@@ -101,17 +105,23 @@ interface GameState {
   board: Board
   score: number
   personalBest: number
+  personalBestTime: number  // seconds, 0 = no record
   gamePhase: GamePhase
+  gameMode: GameMode
   timeLeft: number
+  elapsedTime: number  // seconds, counts up in time attack
   particles: Particle[]
   scorePopups: ScorePopup[]
   isNewRecord: boolean
 
   startGame: () => void
+  startScoreAttack: () => void
+  startTimeAttack: () => void
   endGame: () => void
   goHome: () => void
   resetPersonalBest: () => void
   setPersonalBest: (score: number) => void
+  setPersonalBestTime: (t: number) => void
   confirmSelection: (rect: SelectionRect) => void
   spawnParticles: (cells: CellRef[]) => void
   spawnOpponentParticles: (cells: CellRef[]) => void
@@ -122,8 +132,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   board: [],
   score: 0,
   personalBest: loadPersonalBest(),
+  personalBestTime: loadPersonalBestTime(),
   gamePhase: 'start',
+  gameMode: 'score',
   timeLeft: GAME_DURATION,
+  elapsedTime: 0,
   particles: [],
   scorePopups: [],
   isNewRecord: false,
@@ -133,6 +146,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       board: generateBoard(),
       score: 0,
       timeLeft: GAME_DURATION,
+      elapsedTime: 0,
       particles: [],
       scorePopups: [],
       gamePhase: 'playing',
@@ -140,26 +154,49 @@ export const useGameStore = create<GameState>((set, get) => ({
     })
   },
 
+  startScoreAttack: () => {
+    set({ gameMode: 'score' })
+    get().startGame()
+  },
+
+  startTimeAttack: () => {
+    set({ gameMode: 'time' })
+    get().startGame()
+  },
+
   goHome: () => {
     set({ gamePhase: 'start', particles: [], scorePopups: [] })
   },
 
   endGame: () => {
-    const { score, personalBest } = get()
-    const isNewRecord = score > personalBest
-    if (isNewRecord && _persistBest) {
-      localStorage.setItem(PERSONAL_BEST_KEY, String(score))
+    const { score, personalBest, personalBestTime, elapsedTime, gameMode } = get()
+    if (gameMode === 'score') {
+      const isNewRecord = score > personalBest
+      if (isNewRecord && _persistBest) {
+        localStorage.setItem(PERSONAL_BEST_KEY, String(score))
+      }
+      set({
+        gamePhase: 'ended',
+        personalBest: isNewRecord ? score : personalBest,
+        isNewRecord,
+      })
+    } else {
+      const isNewRecord = personalBestTime === 0 || elapsedTime < personalBestTime
+      if (isNewRecord && _persistBest) {
+        localStorage.setItem(TIME_ATTACK_BEST_KEY, String(elapsedTime))
+      }
+      set({
+        gamePhase: 'ended',
+        personalBestTime: isNewRecord ? elapsedTime : personalBestTime,
+        isNewRecord,
+      })
     }
-    set({
-      gamePhase: 'ended',
-      personalBest: isNewRecord ? score : personalBest,
-      isNewRecord,
-    })
   },
 
   resetPersonalBest: () => {
     localStorage.removeItem(PERSONAL_BEST_KEY)
-    set({ personalBest: 0 })
+    localStorage.removeItem(TIME_ATTACK_BEST_KEY)
+    set({ personalBest: 0, personalBestTime: 0 })
   },
 
   setPersonalBest: (score: number) => {
@@ -167,12 +204,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ personalBest: score })
   },
 
+  setPersonalBestTime: (t: number) => {
+    localStorage.setItem(TIME_ATTACK_BEST_KEY, String(t))
+    set({ personalBestTime: t })
+  },
+
   confirmSelection: (rect: SelectionRect) => {
-    const { board, score } = get()
+    const { board, score, gameMode } = get()
     if (!isValidSelection(board, rect)) return
     const { newBoard, cleared } = clearRect(board, rect)
     get().spawnParticles(cleared)
-    set({ board: newBoard, score: score + cleared.length })
+    const newScore = score + cleared.length
+    set({ board: newBoard, score: newScore })
+    if (gameMode === 'time' && newScore >= TIME_ATTACK_TARGET) {
+      get().endGame()
+    }
   },
 
   spawnParticles: (cells: CellRef[]) => {
@@ -215,11 +261,15 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   tick: () => {
-    const { timeLeft } = get()
-    if (timeLeft <= 1) {
-      get().endGame()
+    const { timeLeft, elapsedTime, gameMode } = get()
+    if (gameMode === 'score') {
+      if (timeLeft <= 1) {
+        get().endGame()
+      } else {
+        set({ timeLeft: timeLeft - 1 })
+      }
     } else {
-      set({ timeLeft: timeLeft - 1 })
+      set({ elapsedTime: elapsedTime + 1 })
     }
   },
 

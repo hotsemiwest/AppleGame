@@ -1,37 +1,54 @@
 import { useState, useEffect, useRef } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
-import { submitScore, fetchProfile } from '../lib/supabase'
+import { submitScore, submitTimeAttackScore, fetchProfile } from '../lib/supabase'
 import { Leaderboard } from './Leaderboard'
 import { C } from '../theme/tokens'
 import { AuthModal } from './AuthModal'
 import { ScoreChart, HistoryEntry } from './ScoreChart'
+import { formatTime } from '../utils/gameLogic'
 
 type Phase = 'submitting' | 'leaderboard' | 'guest'
 
 export function GameOverModal() {
-  const { score, personalBest, isNewRecord, startGame, goHome } = useGameStore()
+  const { score, personalBest, personalBestTime, elapsedTime, gameMode, isNewRecord, startGame, goHome } = useGameStore()
   const { user, displayName, setPendingAuth } = useAuthStore()
+
+  const isTimeAttack = gameMode === 'time'
 
   const [phase, setPhase] = useState<Phase>(user ? 'submitting' : 'guest')
   const [submittedName, setSubmittedName] = useState<string | undefined>()
   const [showAuth, setShowAuth] = useState(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [taHistory, setTaHistory] = useState<{ time_seconds: number; played_at: string }[]>([])
   const didSubmit = useRef(false)
 
   async function submitAndShowHistory(dn: string) {
     const submittedAt = new Date().toISOString()
-    try { await submitScore(dn, score) } catch {}
-    try {
-      const profile = await fetchProfile()
-      const hist = profile.history
-      // DB 반영 타이밍 이슈 보완: 현재 게임 항목이 없으면 직접 추가
-      const hasCurrentEntry = hist.some(
-        h => h.score === score && new Date(h.played_at).getTime() >= Date.now() - 10_000
-      )
-      setHistory(hasCurrentEntry ? hist : [...hist, { score, played_at: submittedAt }])
-    } catch {
-      setHistory([{ score, played_at: submittedAt }])
+    if (!isTimeAttack) {
+      try { await submitScore(dn, score) } catch {}
+      try {
+        const profile = await fetchProfile()
+        const hist = profile.history
+        const hasCurrentEntry = hist.some(
+          h => h.score === score && new Date(h.played_at).getTime() >= Date.now() - 10_000
+        )
+        setHistory(hasCurrentEntry ? hist : [...hist, { score, played_at: submittedAt }])
+      } catch {
+        setHistory([{ score, played_at: submittedAt }])
+      }
+    } else {
+      try { await submitTimeAttackScore(dn, elapsedTime) } catch {}
+      try {
+        const profile = await fetchProfile()
+        const hist = profile.timeAttackHistory
+        const hasCurrentEntry = hist.some(
+          h => h.time_seconds === elapsedTime && new Date(h.played_at).getTime() >= Date.now() - 10_000
+        )
+        setTaHistory(hasCurrentEntry ? hist : [...hist, { time_seconds: elapsedTime, played_at: submittedAt }])
+      } catch {
+        setTaHistory([{ time_seconds: elapsedTime, played_at: submittedAt }])
+      }
     }
   }
 
@@ -67,9 +84,9 @@ export function GameOverModal() {
         >
           {/* 헤더 */}
           <div className="text-center mb-4">
-            <div className="text-4xl mb-1">{isNewRecord ? '🏆' : '⏱️'}</div>
+            <div className="text-4xl mb-1">{isTimeAttack ? '🎯' : isNewRecord ? '🏆' : '⏱️'}</div>
             <h2 className="text-2xl font-black" style={{ color: C.textPrimary }}>
-              {isNewRecord ? '신기록 달성!' : '게임 종료'}
+              {isTimeAttack ? '타임 어택 클리어!' : isNewRecord ? '신기록 달성!' : '게임 종료'}
             </h2>
             {isNewRecord && (
               <p className="text-xs font-semibold mt-0.5" style={{ color: C.accentYellow }}>새 최고 기록!</p>
@@ -79,12 +96,20 @@ export function GameOverModal() {
           {/* 점수 */}
           <div className="flex gap-2 mb-4">
             <div className="flex-1 rounded-2xl py-3 text-center" style={{ background: C.surfaceRaised }}>
-              <div className="text-gray-400 text-xs uppercase tracking-widest">최종 점수</div>
-              <div className="text-4xl font-black mt-0.5" style={{ color: C.textPrimary }}>{score}</div>
+              <div className="text-gray-400 text-xs uppercase tracking-widest">
+                {isTimeAttack ? '클리어 시간' : '최종 점수'}
+              </div>
+              <div className="text-4xl font-black mt-0.5" style={{ color: C.textPrimary }}>
+                {isTimeAttack ? formatTime(elapsedTime) : score}
+              </div>
             </div>
             <div className="flex-1 rounded-2xl py-3 text-center" style={{ background: C.surfaceRaised }}>
               <div className="text-gray-400 text-xs uppercase tracking-widest">최고기록</div>
-              <div className="text-3xl font-black mt-0.5" style={{ color: C.accentYellow }}>{personalBest}</div>
+              <div className="text-3xl font-black mt-0.5" style={{ color: isTimeAttack ? C.orange : C.accentYellow }}>
+                {isTimeAttack
+                  ? (personalBestTime > 0 ? formatTime(personalBestTime) : '-')
+                  : personalBest}
+              </div>
             </div>
           </div>
 
@@ -118,9 +143,13 @@ export function GameOverModal() {
                 <p className="text-gray-400 text-xs uppercase tracking-widest text-center mb-2 font-semibold">
                   🏆 TOP 10
                 </p>
-                <Leaderboard highlightName={submittedName} highlightScore={score} />
+                {isTimeAttack ? (
+                  <Leaderboard mode="time" highlightName={submittedName} highlightTime={elapsedTime} />
+                ) : (
+                  <Leaderboard highlightName={submittedName} highlightScore={score} />
+                )}
               </div>
-              {history.length > 0 && (
+              {!isTimeAttack && history.length > 0 && (
                 <div>
                   <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-2">
                     점수 히스토리
@@ -133,6 +162,26 @@ export function GameOverModal() {
                   </div>
                   <div className="text-xs text-gray-600 text-right mt-1.5">
                     ★ 최고점 &nbsp;• 최근 {history.length}게임
+                  </div>
+                </div>
+              )}
+              {isTimeAttack && taHistory.length > 0 && (
+                <div>
+                  <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-2">
+                    기록 히스토리
+                  </p>
+                  <div
+                    className="rounded-2xl p-3"
+                    style={{ background: C.surfaceDim, border: `1px solid ${C.borderFaint}` }}
+                  >
+                    <ScoreChart
+                      history={taHistory.map(h => ({ score: h.time_seconds, played_at: h.played_at }))}
+                      inverse
+                      formatValue={formatTime}
+                    />
+                  </div>
+                  <div className="text-xs text-gray-600 text-right mt-1.5">
+                    ★ 최고기록 &nbsp;• 최근 {taHistory.length}게임 (낮을수록 좋음)
                   </div>
                 </div>
               )}
