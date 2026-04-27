@@ -1,6 +1,8 @@
 import { useRef, useCallback, useEffect } from 'react'
 import { useMultiStore } from '../store/multiStore'
 import { registerOpponentDragCallback } from '../store/multiStore'
+import { useThemeStore } from '../store/themeStore'
+import { C, BOARD_BG } from '../theme/tokens'
 import { useDragSelect } from '../hooks/useDragSelect'
 import { normalizeRect, sumRect } from '../utils/gameLogic'
 import { Tile } from './Tile'
@@ -22,6 +24,7 @@ export function MultiGameBoard() {
 
   const board = useMultiStore(s => s.board)
   const opponentName = useMultiStore(s => s.opponentName)
+  const theme = useThemeStore(s => s.theme)
 
   // 상대방 드래그 박스를 DOM 직접 조작 — Zustand state 업데이트 없이 처리
   useEffect(() => {
@@ -112,6 +115,8 @@ export function MultiGameBoard() {
         gap: GAP,
         cursor: 'crosshair',
         touchAction: 'none',
+        background: BOARD_BG[theme].background,
+        borderRadius: 16,
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -137,8 +142,8 @@ export function MultiGameBoard() {
           position: 'absolute',
           left: 0,
           top: 0,
-          border: '2.5px solid #f97316',
-          background: 'rgba(249,115,22,0.10)',
+          border: `2.5px solid ${C.opponentBorder}`,
+          background: C.opponentBg,
           borderRadius: 12,
           pointerEvents: 'none',
           zIndex: 9,
@@ -152,7 +157,7 @@ export function MultiGameBoard() {
             top: -22,
             left: '50%',
             transform: 'translateX(-50%)',
-            background: '#f97316',
+            background: C.opponentBorder,
             color: 'white',
             fontSize: 11,
             fontWeight: 700,

@@ -1,5 +1,7 @@
 import { useRef, useCallback } from 'react'
 import { useGameStore } from '../store/gameStore'
+import { useThemeStore } from '../store/themeStore'
+import { BOARD_BG } from '../theme/tokens'
 import { useDragSelect } from '../hooks/useDragSelect'
 import { normalizeRect, sumRect } from '../utils/gameLogic'
 import { Tile } from './Tile'
@@ -17,6 +19,7 @@ export function GameBoard() {
   const boardRef = useRef<HTMLDivElement>(null)
   const selBoxRef = useRef<SelectionBoxHandle>(null)
   const board = useGameStore(state => state.board)
+  const theme = useThemeStore(s => s.theme)
 
   // All three callbacks are stable (no deps) — they read latest state via getState()
   const handleDrag = useCallback((rect: SelectionRect) => {
@@ -52,6 +55,8 @@ export function GameBoard() {
         gap: GAP,
         cursor: 'crosshair',
         touchAction: 'none',
+        background: BOARD_BG[theme].background,
+        borderRadius: 16,
       }}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}

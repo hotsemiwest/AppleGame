@@ -12,12 +12,85 @@ button {
   -webkit-user-select: none;
 }
 
+:root {
+  --c-modal-bg:     #1f2937;
+  --c-panel-bg:     #374151;
+  --c-panel-hover:  #4b5563;
+  --c-input-bg:     #374151;
+  --c-text:         #ffffff;
+  --c-text-sub:     #d1d5db;
+  --c-text-muted:   #9ca3af;
+  --c-text-faint:   #6b7280;
+  --c-border:       #374151;
+  --c-border-mid:   #4b5563;
+  --c-surface-dim:  rgba(255,255,255,0.03);
+  --c-surface-ghost:rgba(255,255,255,0.04);
+  --c-border-faint: rgba(255,255,255,0.06);
+  --c-border-ghost: rgba(255,255,255,0.10);
+}
+
 body {
   margin: 0;
   background: #111827;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   overflow-x: hidden;
+  transition: background 0.3s ease;
 }
+
+body.theme-light {
+  background: #f0f4f0;
+  --c-modal-bg:     #ffffff;
+  --c-panel-bg:     #f3f4f6;
+  --c-panel-hover:  #e5e7eb;
+  --c-input-bg:     #f9fafb;
+  --c-text:         #111827;
+  --c-text-sub:     #374151;
+  --c-text-muted:   #6b7280;
+  --c-text-faint:   #9ca3af;
+  --c-border:       #e5e7eb;
+  --c-border-mid:   #d1d5db;
+  --c-surface-dim:  rgba(0,0,0,0.04);
+  --c-surface-ghost:rgba(0,0,0,0.04);
+  --c-border-faint: rgba(0,0,0,0.08);
+  --c-border-ghost: rgba(0,0,0,0.10);
+}
+
+/* Yellow/gold accent — visible on both dark and light backgrounds */
+:root {
+  --c-accent-yellow: #fbbf24;
+  --c-rank-gold:     #FFD700;
+  --c-rank-silver:   #C0C0C0;
+  --c-rank-bronze:   #CD7F32;
+  --c-rank-green:    #22c55e;
+  --c-rank-default:  #6b7280;
+  /* Score chart */
+  --c-chart-grid:    rgba(255,255,255,0.07);
+  --c-chart-label:   rgba(255,255,255,0.30);
+  --c-chart-guide:   rgba(255,255,255,0.25);
+  --c-chart-dot:     rgba(255,255,255,0.80);
+  --c-chart-cursor:  #ffffff;
+}
+body.theme-light {
+  --c-accent-yellow: #e9ab0f;
+  --c-rank-gold:     #e9ab0f;
+  --c-rank-silver:   #6b7280;
+  --c-rank-bronze:   #92400e;
+  --c-rank-green:    #15803d;
+  --c-rank-default:  #4b5563;
+  --c-chart-grid:    rgba(0,0,0,0.08);
+  --c-chart-label:   rgba(0,0,0,0.35);
+  --c-chart-guide:   rgba(0,0,0,0.20);
+  --c-chart-dot:     rgba(0,0,0,0.70);
+  --c-chart-cursor:  #111827;
+}
+
+/* Adaptive hover for ghost/panel buttons */
+.panel-hover:hover { background: var(--c-panel-hover) !important; }
+
+/* Adaptive input border — replaces hardcoded border-gray-600 / focus:border-green-500 */
+.input-adaptive           { border-color: var(--c-border-mid) !important; }
+.input-adaptive:focus     { border-color: #22c55e !important; }
+.input-adaptive-blue:focus{ border-color: #3b82f6 !important; }
 
 /* Particle animation */
 @keyframes particleBurst {

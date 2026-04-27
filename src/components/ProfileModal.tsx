@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useAuthStore } from '../store/authStore'
 import { fetchProfile, fetchPublicProfile, ProfileData, checkDisplayNameTaken } from '../lib/supabase'
 import { ScoreChart } from './ScoreChart'
+import { C } from '../theme/tokens'
 
 interface Props {
   onClose: () => void
@@ -20,11 +21,11 @@ function rankLabel(rank: number) {
 }
 
 function rankColor(rank: number) {
-  if (rank === 1) return '#FFD700'
-  if (rank === 2) return '#C0C0C0'
-  if (rank === 3) return '#CD7F32'
-  if (rank <= 10) return '#22c55e'
-  return '#6b7280'
+  if (rank === 1) return C.rankGold
+  if (rank === 2) return C.rankSilver
+  if (rank === 3) return C.rankBronze
+  if (rank <= 10) return C.rankGreen
+  return C.rankDefault
 }
 
 
@@ -72,12 +73,12 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
   return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center z-[60]"
-      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+      style={{ background: C.scrim80, backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <div
-        className="bg-gray-800 rounded-3xl p-6 w-full mx-4 shadow-2xl border border-gray-700 flex flex-col gap-4"
-        style={{ maxWidth: 380, maxHeight: '90vh', overflowY: 'auto' }}
+        className="rounded-3xl p-6 w-full mx-4 shadow-2xl flex flex-col gap-4"
+        style={{ maxWidth: 380, maxHeight: '90vh', overflowY: 'auto', background: C.surface, border: `1px solid ${C.borderStrong}` }}
         onClick={e => e.stopPropagation()}
       >
         {/* 계정 정보 */}
@@ -90,14 +91,16 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 value={editingName}
                 onChange={e => setEditingName(e.target.value.slice(0, 16))}
                 onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(null) }}
-                className="bg-gray-700 text-white text-center rounded-xl px-3 py-1.5 text-lg font-black outline-none border border-gray-600 focus:border-green-500 transition-colors w-48"
+                className="text-center rounded-xl px-3 py-1.5 text-lg font-black outline-none border input-adaptive transition-colors w-48"
+                style={{ background: C.inputBg, color: C.textPrimary }}
                 autoFocus
               />
               {nameError && <p className="text-red-400 text-xs">{nameError}</p>}
               <div className="flex gap-2">
                 <button
                   onClick={() => { setEditingName(null); setNameError('') }}
-                  className="px-3 py-1 rounded-lg text-xs font-semibold text-gray-300 bg-gray-700 hover:bg-gray-600 transition-all"
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-all panel-hover"
+                  style={{ background: C.surfaceRaised, color: C.textSub }}
                 >
                   취소
                 </button>
@@ -112,14 +115,15 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1.5">
-              <div className="text-xl font-black text-white">{shownName}</div>
+              <div className="text-xl font-black" style={{ color: C.textPrimary }}>{shownName}</div>
               {isOwnProfile && (
                 <div className="text-xs text-gray-400">{user?.email}</div>
               )}
               {isOwnProfile && (
                 <button
                   onClick={() => setEditingName(displayName ?? '')}
-                  className="px-2 py-0.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-200 bg-gray-700 hover:bg-gray-600 transition-all"
+                  className="px-2 py-0.5 rounded-lg text-xs font-semibold transition-all panel-hover"
+                  style={{ background: C.surfaceRaised, color: C.textMuted }}
                 >
                   닉네임 변경
                 </button>
@@ -161,15 +165,15 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
 
             {/* 스탯 */}
             <div className="flex gap-3">
-              <div className="flex-1 bg-gray-700 rounded-2xl py-4 text-center">
+              <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                 <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 점수</div>
-                <div className="text-3xl font-black text-white">
+                <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
                   {data.bestScore ?? '-'}
                 </div>
               </div>
-              <div className="flex-1 bg-gray-700 rounded-2xl py-4 text-center">
+              <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                 <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">플레이 횟수</div>
-                <div className="text-3xl font-black text-white">
+                <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
                   {data.playCount}
                   <span className="text-base font-semibold text-gray-400 ml-1">회</span>
                 </div>
@@ -183,7 +187,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
               </div>
               <div
                 className="rounded-2xl p-3"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                style={{ background: C.surfaceDim, border: `1px solid ${C.borderFaint}` }}
               >
                 <ScoreChart history={data.history} />
               </div>
@@ -198,7 +202,8 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
 
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-2xl text-sm font-bold text-gray-300 bg-gray-700 hover:bg-gray-600 transition-all active:scale-95 mt-auto"
+          className="w-full py-3 rounded-2xl text-sm font-bold transition-all active:scale-95 mt-auto panel-hover"
+          style={{ background: C.surfaceRaised, color: C.textSub }}
         >
           닫기
         </button>

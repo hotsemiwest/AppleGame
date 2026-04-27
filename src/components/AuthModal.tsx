@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuthStore } from '../store/authStore'
 import { checkDisplayNameTaken } from '../lib/supabase'
+import { C } from '../theme/tokens'
 
 interface Props {
   onSuccess: () => void
@@ -85,19 +86,19 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
   return createPortal(
     <div
       className="fixed inset-0 flex items-center justify-center z-[60]"
-      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
+      style={{ background: C.scrim80, backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <div
-        className="bg-gray-800 rounded-3xl p-6 w-full mx-4 shadow-2xl border border-gray-700"
-        style={{ maxWidth: 360 }}
+        className="rounded-3xl p-6 w-full mx-4 shadow-2xl"
+        style={{ maxWidth: 360, background: C.surface, border: `1px solid ${C.borderStrong}` }}
         onClick={e => e.stopPropagation()}
       >
         {signedUp ? (
           /* 회원가입 완료 화면 */
           <div className="text-center py-2">
             <div className="text-5xl mb-4">✉️</div>
-            <p className="text-white font-black text-xl mb-2">인증 메일을 발송했습니다!</p>
+            <p className="font-black text-xl mb-2" style={{ color: C.textPrimary }}>인증 메일을 발송했습니다!</p>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               메일함에서 인증 링크를 클릭한 후<br />로그인해 주세요.
             </p>
@@ -111,7 +112,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
         ) : (
           <>
             {/* 탭 */}
-            <div className="flex rounded-xl overflow-hidden mb-5" style={{ background: '#1f2937' }}>
+            <div className="flex rounded-xl overflow-hidden mb-5" style={{ background: C.surface }}>
               {(['login', 'signup'] as Tab[]).map(t => (
                 <button
                   key={t}
@@ -131,7 +132,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
             {activeNotice && tab === 'login' && (
               <div
                 className="rounded-xl px-4 py-2.5 mb-4 text-xs font-semibold text-green-300 text-center"
-                style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}
+                style={{ background: C.noticeBg, border: `1px solid ${C.noticeBorder}` }}
               >
                 {activeNotice}
               </div>
@@ -146,7 +147,8 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
                     onChange={e => { setDisplayName(e.target.value.slice(0, 16)); setNameError(''); setNameAvailable(false) }}
                     onBlur={handleNameBlur}
                     placeholder="닉네임 (최대 16자)"
-                    className={`w-full bg-gray-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${nameError ? 'border-red-500' : 'border-gray-600 focus:border-green-500'}`}
+                    className={`w-full rounded-xl px-4 py-2.5 text-sm outline-none border transition-colors ${nameError ? 'border-red-500' : 'input-adaptive'}`}
+                    style={{ background: C.inputBg, color: C.textPrimary }}
                     autoFocus
                   />
                   {nameChecking && <p className="text-gray-400 text-xs mt-1 pl-1">확인 중...</p>}
@@ -159,7 +161,8 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="이메일"
-                className="w-full bg-gray-700 text-white rounded-xl px-4 py-2.5 text-sm outline-none border border-gray-600 focus:border-green-500 transition-colors"
+                className="w-full rounded-xl px-4 py-2.5 text-sm outline-none border input-adaptive transition-colors"
+                style={{ background: C.inputBg, color: C.textPrimary }}
                 autoFocus={tab === 'login'}
               />
               <div className="relative">
@@ -169,7 +172,8 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
                   onChange={e => setPassword(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                   placeholder="비밀번호 (6자 이상)"
-                  className="w-full bg-gray-700 text-white rounded-xl px-4 py-2.5 pr-12 text-sm outline-none border border-gray-600 focus:border-green-500 transition-colors"
+                  className="w-full rounded-xl px-4 py-2.5 pr-12 text-sm outline-none border input-adaptive transition-colors"
+                  style={{ background: C.inputBg, color: C.textPrimary }}
                 />
                 <button
                   type="button"
@@ -188,7 +192,8 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
             <div className="flex gap-2 mt-4">
               <button
                 onClick={onClose}
-                className="flex-1 py-3 rounded-2xl text-sm font-semibold text-gray-300 bg-gray-700 hover:bg-gray-600 transition-all active:scale-95"
+                className="flex-1 py-3 rounded-2xl text-sm font-semibold transition-all active:scale-95 panel-hover"
+                style={{ background: C.surfaceRaised, color: C.textSub }}
               >
                 취소
               </button>

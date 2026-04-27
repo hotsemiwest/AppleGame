@@ -1,5 +1,6 @@
 import { forwardRef, useRef, useImperativeHandle } from 'react'
 import { NormalizedRect } from '../types/game'
+import { C } from '../theme/tokens'
 
 const TILE_SIZE = 52
 const GAP = 2
@@ -21,12 +22,8 @@ export const SelectionBox = forwardRef<SelectionBoxHandle>(function SelectionBox
 
       const isExact = sum === 10
       const isOver = sum > 10
-      const borderColor = isExact ? '#22c55e' : isOver ? '#ef4444' : '#3b82f6'
-      const bgColor = isExact
-        ? 'rgba(34,197,94,0.12)'
-        : isOver
-        ? 'rgba(239,68,68,0.10)'
-        : 'rgba(59,130,246,0.10)'
+      const borderColor = isExact ? C.green : isOver ? C.red : C.blue
+      const bgColor = isExact ? C.exactBg : isOver ? C.overBg : C.neutralBg
 
       const x = rect.minCol * CELL
       const y = rect.minRow * CELL

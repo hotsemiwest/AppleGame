@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useMultiStore } from '../store/multiStore'
+import { C } from '../theme/tokens'
 
 export function MultiCountdown() {
   const { countdownValue, decrementCountdown } = useMultiStore()
@@ -15,7 +16,7 @@ export function MultiCountdown() {
   return (
     <div
       className="fixed inset-0 z-[70] flex flex-col items-center justify-center"
-      style={{ background: 'rgba(0,0,0,0.72)', backdropFilter: 'blur(6px)' }}
+      style={{ background: C.scrim72, backdropFilter: 'blur(6px)' }}
     >
       <div
         key={display}
@@ -24,10 +25,10 @@ export function MultiCountdown() {
           fontSize: 160,
           fontWeight: 900,
           lineHeight: 1,
-          color: isGo ? '#22c55e' : 'white',
+          color: isGo ? C.green : C.textPrimary,
           textShadow: isGo
-            ? '0 0 80px rgba(34,197,94,0.9)'
-            : '0 0 60px rgba(99,102,241,0.8)',
+            ? `0 0 80px ${C.goGlow}`
+            : `0 0 60px ${C.numGlow}`,
           userSelect: 'none',
         }}
       >

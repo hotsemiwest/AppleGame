@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { C } from '../theme/tokens'
 
 export interface HistoryEntry {
   score: number
@@ -72,21 +73,21 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
       {/* 가로 그리드 */}
       {yTicks.map(s => (
         <line key={s} x1={PL} x2={W - PR} y1={cy(s)} y2={cy(s)}
-          stroke="rgba(255,255,255,0.07)" strokeWidth={1} />
+          stroke={C.chartGrid} strokeWidth={1} />
       ))}
 
       {/* Y축 레이블 */}
       {yTicks.map(s => (
         <text key={s} x={PL - 4} y={cy(s)} textAnchor="end" dominantBaseline="middle"
-          fill="rgba(255,255,255,0.3)" fontSize={9}>
+          fill={C.chartLabel} fontSize={9}>
           {s}
         </text>
       ))}
 
       {/* X축 레이블 */}
-      <text x={cx(0)} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9}>1</text>
+      <text x={cx(0)} y={H - 4} textAnchor="middle" fill={C.chartLabel} fontSize={9}>1</text>
       {n > 1 && (
-        <text x={cx(n - 1)} y={H - 4} textAnchor="middle" fill="rgba(255,255,255,0.3)" fontSize={9}>{n}</text>
+        <text x={cx(n - 1)} y={H - 4} textAnchor="middle" fill={C.chartLabel} fontSize={9}>{n}</text>
       )}
 
       {/* 라인 */}
@@ -99,8 +100,8 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
       {scores.map((s, i) => (
         <circle key={i} cx={cx(i)} cy={cy(s)}
           r={i === bestIdx ? 5 : 3}
-          fill={i === bestIdx ? '#FFD700' : '#22c55e'}
-          stroke={i === bestIdx ? 'rgba(255,255,255,0.8)' : 'none'}
+          fill={i === bestIdx ? C.rankGold : '#22c55e'}
+          stroke={i === bestIdx ? C.chartDot : 'none'}
           strokeWidth={i === bestIdx ? 1.5 : 0}
         />
       ))}
@@ -112,7 +113,7 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
           <line
             x1={hoveredTooltip.x} x2={hoveredTooltip.x}
             y1={PT} y2={H - PB}
-            stroke="rgba(255,255,255,0.25)"
+            stroke={C.chartGuide}
             strokeWidth={1}
             strokeDasharray="3,2"
           />
@@ -120,7 +121,7 @@ export function ScoreChart({ history }: { history: HistoryEntry[] }) {
           <circle
             cx={hoveredTooltip.x} cy={hoveredTooltip.y}
             r={5}
-            fill="white"
+            fill={C.chartCursor}
             opacity={0.9}
           />
           {/* 팝오버 배경 */}

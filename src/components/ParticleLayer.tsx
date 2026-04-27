@@ -1,4 +1,5 @@
 import { useGameStore } from '../store/gameStore'
+import { C } from '../theme/tokens'
 
 const TILE_SIZE = 52
 const GAP = 2
@@ -59,10 +60,10 @@ export function ParticleLayer() {
               top: cy,
               fontSize: isBig ? 34 : 24,
               fontWeight: 900,
-              color: isBig ? '#FFD700' : '#FFA500',
+              color: isBig ? C.popupBig : C.popupCombo,
               textShadow: isBig
-                ? '0 0 12px #FFD700, 0 0 24px #FF8C00, 0 2px 6px rgba(0,0,0,0.9)'
-                : '0 0 8px #FFA500, 0 2px 4px rgba(0,0,0,0.8)',
+                ? `0 0 12px ${C.popupBig}, 0 0 24px ${C.amber}, 0 2px 6px rgba(0,0,0,0.9)`
+                : `0 0 8px ${C.popupCombo}, 0 2px 4px rgba(0,0,0,0.8)`,
               fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
               whiteSpace: 'nowrap',
             }}

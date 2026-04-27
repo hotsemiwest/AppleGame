@@ -3,6 +3,7 @@ import {
   Board, GamePhase, Particle, ParticleTier, ScorePopup,
   SelectionRect, CellRef, GAME_DURATION,
 } from '../types/game'
+import { PARTICLE_COLORS } from '../theme/tokens'
 import { generateBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect } from '../utils/gameLogic'
 
@@ -30,11 +31,7 @@ const TIER_CONFIG: Record<ParticleTier, { perTile: number; size: number; baseDis
   big:    { perTile: 16, size: 18, baseDist: 100, duration: 950 },
 }
 
-const TIER_COLORS: Record<ParticleTier, string[]> = {
-  normal: ['#D92B2B', '#E84040', '#C42020'],
-  combo:  ['#FF4500', '#FF8C00', '#FFD700', '#FF6347', '#FFA500'],
-  big:    ['#FFD700', '#FF4500', '#00FF88', '#00BFFF', '#FF69B4', '#FFFFFF', '#FF4500', '#FFD700'],
-}
+const TIER_COLORS: Record<ParticleTier, readonly string[]> = PARTICLE_COLORS
 
 interface GameState {
   board: Board

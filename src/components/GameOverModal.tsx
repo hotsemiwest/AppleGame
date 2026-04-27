@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { submitScore, fetchProfile } from '../lib/supabase'
 import { Leaderboard } from './Leaderboard'
+import { C } from '../theme/tokens'
 import { AuthModal } from './AuthModal'
 import { ScoreChart, HistoryEntry } from './ScoreChart'
 
@@ -58,32 +59,32 @@ export function GameOverModal() {
     <>
       <div
         className="fixed inset-0 flex items-center justify-center z-50"
-        style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+        style={{ background: C.scrim75, backdropFilter: 'blur(4px)' }}
       >
         <div
-          className="bg-gray-800 rounded-3xl p-6 w-full mx-4 shadow-2xl border border-gray-700 flex flex-col"
-          style={{ maxWidth: 380, maxHeight: '90vh', overflowY: 'auto' }}
+          className="rounded-3xl p-6 w-full mx-4 shadow-2xl flex flex-col"
+          style={{ maxWidth: 380, maxHeight: '90vh', overflowY: 'auto', background: C.surface, border: `1px solid ${C.borderStrong}` }}
         >
           {/* 헤더 */}
           <div className="text-center mb-4">
             <div className="text-4xl mb-1">{isNewRecord ? '🏆' : '⏱️'}</div>
-            <h2 className="text-2xl font-black text-white">
+            <h2 className="text-2xl font-black" style={{ color: C.textPrimary }}>
               {isNewRecord ? '신기록 달성!' : '게임 종료'}
             </h2>
             {isNewRecord && (
-              <p className="text-yellow-400 text-xs font-semibold mt-0.5">새 최고 기록!</p>
+              <p className="text-xs font-semibold mt-0.5" style={{ color: C.accentYellow }}>새 최고 기록!</p>
             )}
           </div>
 
           {/* 점수 */}
           <div className="flex gap-2 mb-4">
-            <div className="flex-1 bg-gray-700 rounded-2xl py-3 text-center">
+            <div className="flex-1 rounded-2xl py-3 text-center" style={{ background: C.surfaceRaised }}>
               <div className="text-gray-400 text-xs uppercase tracking-widest">최종 점수</div>
-              <div className="text-4xl font-black text-white mt-0.5">{score}</div>
+              <div className="text-4xl font-black mt-0.5" style={{ color: C.textPrimary }}>{score}</div>
             </div>
-            <div className="flex-1 bg-gray-700 rounded-2xl py-3 text-center">
+            <div className="flex-1 rounded-2xl py-3 text-center" style={{ background: C.surfaceRaised }}>
               <div className="text-gray-400 text-xs uppercase tracking-widest">최고기록</div>
-              <div className="text-3xl font-black text-yellow-400 mt-0.5">{personalBest}</div>
+              <div className="text-3xl font-black mt-0.5" style={{ color: C.accentYellow }}>{personalBest}</div>
             </div>
           </div>
 
@@ -126,7 +127,7 @@ export function GameOverModal() {
                   </p>
                   <div
                     className="rounded-2xl p-3"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                    style={{ background: C.surfaceDim, border: `1px solid ${C.borderFaint}` }}
                   >
                     <ScoreChart history={history} />
                   </div>
@@ -141,8 +142,8 @@ export function GameOverModal() {
           <div className="flex gap-2 mt-auto pt-2">
             <button
               onClick={goHome}
-              className="flex-1 py-3.5 rounded-2xl text-base font-black text-gray-300 transition-all active:scale-95"
-              style={{ background: '#374151', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="flex-1 py-3.5 rounded-2xl text-base font-black transition-all active:scale-95 panel-hover"
+              style={{ background: C.surfaceRaised, color: C.textSub, border: `1px solid ${C.borderGhost}` }}
             >
               🏠 홈
             </button>

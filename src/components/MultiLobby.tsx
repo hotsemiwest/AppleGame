@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useMultiStore } from '../store/multiStore'
+import { C } from '../theme/tokens'
 
 export function MultiLobby() {
   const { isHost, roomCode, myName, opponentName, startGame, leaveRoom } = useMultiStore()
@@ -16,16 +17,16 @@ export function MultiLobby() {
   return (
     <div
       className="fixed inset-0 flex items-center justify-center z-[60]"
-      style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(6px)' }}
+      style={{ background: C.scrim85, backdropFilter: 'blur(6px)' }}
     >
       <div
-        className="bg-gray-800 rounded-3xl p-6 w-full mx-4 shadow-2xl border border-gray-700"
-        style={{ maxWidth: 380 }}
+        className="rounded-3xl p-6 w-full mx-4 shadow-2xl"
+        style={{ maxWidth: 380, background: C.surface, border: `1px solid ${C.borderStrong}` }}
       >
         {/* 헤더 */}
         <div className="text-center mb-5">
           <div className="text-4xl mb-2">👥</div>
-          <h2 className="text-xl font-black text-white">멀티 게임</h2>
+          <h2 className="text-xl font-black" style={{ color: C.textPrimary }}>멀티 게임</h2>
           {myName && <p className="text-gray-400 text-sm mt-1">👤 {myName}</p>}
         </div>
 
@@ -35,16 +36,16 @@ export function MultiLobby() {
               {/* 방 코드 표시 */}
               <div
                 className="rounded-2xl p-4 text-center"
-                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}
+                style={{ background: C.roomBg, border: `1px solid ${C.roomBorder}` }}
               >
                 <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-2">방 코드</p>
-                <p className="text-4xl font-black text-white tracking-widest">{roomCode}</p>
+                <p className="text-4xl font-black tracking-widest" style={{ color: C.textPrimary }}>{roomCode}</p>
                 <button
                   onClick={handleCopy}
                   className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
                   style={{
-                    background: copied ? 'rgba(34,197,94,0.2)' : 'rgba(255,255,255,0.1)',
-                    color: copied ? '#86efac' : '#9ca3af',
+                    background: copied ? C.noticeBorder : C.borderGhost,
+                    color: copied ? C.greenLight : C.textMuted,
                   }}
                 >
                   {copied ? '✓ 복사됨' : '코드 복사'}
@@ -55,7 +56,7 @@ export function MultiLobby() {
               {opponentName ? (
                 <div
                   className="rounded-2xl p-3 text-center"
-                  style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.3)' }}
+                  style={{ background: C.joinedBg, border: `1px solid ${C.joinedBorder}` }}
                 >
                   <p className="text-green-400 text-sm font-bold">👤 {opponentName} 님이 입장했습니다!</p>
                 </div>
@@ -78,7 +79,7 @@ export function MultiLobby() {
               {/* 게스트 대기 화면 */}
               <div
                 className="rounded-2xl p-4 text-center"
-                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)' }}
+                style={{ background: C.roomBg, border: `1px solid ${C.roomBorder}` }}
               >
                 <p className="text-green-400 text-sm font-bold mb-1">✅ 방에 참가했습니다!</p>
                 {opponentName && <p className="text-gray-300 text-sm">상대: {opponentName}</p>}

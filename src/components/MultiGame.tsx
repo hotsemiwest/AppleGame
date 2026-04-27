@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useMultiStore } from '../store/multiStore'
 import { MultiGameBoard } from './MultiGameBoard'
+import { C, G } from '../theme/tokens'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -42,7 +43,7 @@ export function MultiGame() {
       {showDeadlock && (
         <div
           className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-2.5 rounded-2xl text-sm font-semibold text-white shadow-xl"
-          style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', border: '1px solid rgba(255,255,255,0.15)', whiteSpace: 'nowrap' }}
+          style={{ background: G.purple, border: `1px solid ${C.borderLit}`, whiteSpace: 'nowrap' }}
         >
           🔄 보드가 초기화되었습니다
         </div>
@@ -55,16 +56,15 @@ export function MultiGame() {
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold truncate max-w-[120px]">
             {isHost ? '👤 나' : `👤 ${hostName ?? '호스트'}`}
           </div>
-          <div className="text-3xl font-black text-white">{hostScore}</div>
+          <div className="text-3xl font-black" style={{ color: C.textPrimary }}>{hostScore}</div>
         </div>
 
         {/* 타이머 */}
         <div className="text-center mx-4">
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">남은 시간</div>
           <div
-            className={`text-4xl font-black tabular-nums transition-colors ${
-              isUrgent ? 'text-red-400' : 'text-white'
-            }`}
+            className={`text-4xl font-black tabular-nums transition-colors ${isUrgent ? 'text-red-400' : ''}`}
+            style={isUrgent ? {} : { color: C.textPrimary }}
           >
             {formatTime(timeLeft)}
           </div>
@@ -75,19 +75,17 @@ export function MultiGame() {
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold truncate max-w-[120px] ml-auto">
             {!isHost ? '👤 나' : `👤 ${guestName ?? '게스트'}`}
           </div>
-          <div className="text-3xl font-black text-white">{guestScore}</div>
+          <div className="text-3xl font-black" style={{ color: C.textPrimary }}>{guestScore}</div>
         </div>
       </div>
 
       {/* 시간 게이지바 */}
-      <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{ background: 'rgba(255,255,255,0.1)' }}>
+      <div className="w-full h-2 rounded-full overflow-hidden mb-4" style={{ background: C.borderGhost }}>
         <div
           className="h-full rounded-full transition-all duration-1000 ease-linear"
           style={{
             width: `${(timeLeft / 120) * 100}%`,
-            background: isUrgent
-              ? 'linear-gradient(90deg, #ef4444, #f97316)'
-              : 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+            background: isUrgent ? G.timerUrgent : G.multiTimer,
           }}
         />
       </div>
@@ -97,7 +95,7 @@ export function MultiGame() {
         <button
           onClick={forfeit}
           className="px-3 py-1.5 rounded-lg text-xs font-semibold text-gray-400 hover:text-gray-300 transition-colors"
-          style={{ background: '#374151', border: '1px solid rgba(255,255,255,0.1)' }}
+          style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
         >
           나가기
         </button>

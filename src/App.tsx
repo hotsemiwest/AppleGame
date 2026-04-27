@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { useGameStore } from './store/gameStore'
 import { useAuthStore } from './store/authStore'
 import { useMultiStore } from './store/multiStore'
+import { useThemeStore } from './store/themeStore'
+import { C, G } from './theme/tokens'
 import { Header } from './components/Header'
 import { GameBoard } from './components/GameBoard'
 import { GameOverModal } from './components/GameOverModal'
@@ -12,6 +14,14 @@ import { MultiGameOver } from './components/MultiGameOver'
 import { MultiCountdown } from './components/MultiCountdown'
 
 const BOARD_WIDTH = 916
+
+function ThemeSync() {
+  const theme = useThemeStore(s => s.theme)
+  useEffect(() => {
+    document.body.classList.toggle('theme-light', theme === 'light')
+  }, [theme])
+  return null
+}
 
 export default function App() {
   const { gamePhase, tick } = useGameStore()
@@ -33,16 +43,18 @@ export default function App() {
   }, [gamePhase, tick])
 
   return (
+    <>
+    <ThemeSync />
     <div
-      className="min-h-screen bg-gray-900 flex flex-col items-center justify-center py-6 overflow-x-hidden"
+      className="min-h-screen flex flex-col items-center justify-center py-6 overflow-x-hidden"
       style={{ userSelect: 'none' }}
     >
       {pendingAuth && !pendingAuth.openLogin && (
         <div
           className="fixed top-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-xl"
           style={{
-            background: 'linear-gradient(135deg,#166534,#065f46)',
-            border: '1px solid rgba(255,255,255,0.15)',
+            background: G.notice,
+            border: `1px solid ${C.borderLit}`,
             whiteSpace: 'nowrap',
           }}
         >
@@ -67,5 +79,6 @@ export default function App() {
       {multiPhase === 'countdown' && <MultiCountdown />}
       {multiPhase === 'ended' && <MultiGameOver />}
     </div>
+    </>
   )
 }

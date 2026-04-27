@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchTopScores, ScoreEntry } from '../lib/supabase'
+import { C } from '../theme/tokens'
 
 const MEDALS = ['🥇', '🥈', '🥉']
 
@@ -51,10 +52,9 @@ export function Leaderboard({ highlightName, highlightScore, onUserClick }: Prop
           <div
             key={i}
             className={`flex items-center rounded-xl px-3 py-2 text-sm gap-2 ${
-              isMe
-                ? 'bg-yellow-500/20 border border-yellow-400/40'
-                : 'bg-gray-700/60'
+              isMe ? 'bg-yellow-500/20 border border-yellow-400/40' : ''
             }`}
+            style={isMe ? {} : { background: C.surfaceRaised }}
           >
             <span className="w-7 text-center flex-shrink-0 text-base">
               {MEDALS[i] ?? <span className="text-gray-400 font-bold">{i + 1}</span>}
@@ -62,25 +62,22 @@ export function Leaderboard({ highlightName, highlightScore, onUserClick }: Prop
             {onUserClick ? (
               <button
                 onClick={() => onUserClick(entry)}
-                className={`flex-1 font-semibold truncate text-left hover:underline ${
-                  isMe ? 'text-yellow-300' : 'text-white'
-                }`}
+                className="flex-1 font-semibold truncate text-left hover:underline"
+              style={{ color: isMe ? C.accentYellow : C.textPrimary }}
               >
                 {entry.display_name}
               </button>
             ) : (
               <span
-                className={`flex-1 font-semibold truncate ${
-                  isMe ? 'text-yellow-300' : 'text-white'
-                }`}
+                className="flex-1 font-semibold truncate"
+              style={{ color: isMe ? C.accentYellow : C.textPrimary }}
               >
                 {entry.display_name}
               </span>
             )}
             <span
-              className={`font-black tabular-nums ${
-                isMe ? 'text-yellow-300' : 'text-white'
-              }`}
+              className="font-black tabular-nums"
+              style={{ color: isMe ? C.accentYellow : C.textPrimary }}
             >
               {entry.score}
             </span>
