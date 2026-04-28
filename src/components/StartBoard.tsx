@@ -81,7 +81,7 @@ export function StartBoard() {
   return (
     <>
       <div
-        className="flex flex-col items-center justify-between w-full py-10 px-8"
+        className="flex flex-col items-center justify-center w-full py-10 px-8 gap-10"
         style={{
           height: BOARD_HEIGHT,
           background: BOARD_BG[theme].background,

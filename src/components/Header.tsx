@@ -87,7 +87,7 @@ export function Header() {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold"
                     style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
                   >
-                    <span style={{ color: C.textSub }}>⏱️ 최고</span>
+                    <span style={{ color: C.textSub }}>⏱️ 스코어 어택</span>
                     <span className="font-black" style={{ color: C.accentYellow }}>{personalBest}점</span>
                   </div>
                 )}
@@ -96,7 +96,7 @@ export function Header() {
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold"
                     style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
                   >
-                    <span style={{ color: C.textSub }}>🎯 최고</span>
+                    <span style={{ color: C.textSub }}>🎯 타임 어택</span>
                     <span className="font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</span>
                   </div>
                 )}
