@@ -41,7 +41,7 @@ const SPARKLE_COLORS = ['#FFFFFF', '#FFD700', '#FF8C00'] as const
 const TIER_COLORS: Record<ParticleTier, readonly string[]> = PARTICLE_COLORS
 
 // Shared builder — used by both player and opponent so effects are identical
-function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle[], number] {
+export function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle[], number] {
   const count = cells.length
   const tier = getTier(count)
   const { perTile, size, baseDist, duration } = TIER_CONFIG[tier]
