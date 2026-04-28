@@ -153,7 +153,7 @@ export function useDragSelect(
       rafId.current = null
       if (!isDragging.current || !startCell.current || !cachedRect.current) return
       const cr = cachedRect.current
-      const { row, col } = clampCell(cx - cr.left, cy - cr.top, cr.w, cr.h)
+      const { row, col } = clampCell(cx - cr.left, cy - cr.top, cr.w, cr.h, gridCols, gridRows)
       const rect: SelectionRect = {
         startRow: startCell.current.row,
         startCol: startCell.current.col,
