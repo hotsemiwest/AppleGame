@@ -1,7 +1,7 @@
 // ─── Tile / board theming ──────────────────────────────────────────────────────
 
 export type TileColorId = 'red' | 'crimson' | 'green' | 'forest' | 'salmon' | 'olive'
-export type TileShape = 'apple' | 'circle' | 'square'
+export type TileShape = 'apple' | 'circle' | 'square' | '8bit'
 export type Theme = 'light' | 'dark'
 
 export interface TileColorDef {

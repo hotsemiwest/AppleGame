@@ -24,7 +24,7 @@ const KEY = 'applebox_theme'
 type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDragSelectionSum' | 'showDragSelectionRangeColor'>
 
 const THEMES: Theme[] = ['light', 'dark']
-const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square']
+const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square', '8bit']
 
 function load(): Partial<Saved> {
   try {
