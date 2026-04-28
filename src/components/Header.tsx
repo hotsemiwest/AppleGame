@@ -39,7 +39,7 @@ export function Header() {
   return (
     <>
       <div className="w-full mb-2">
-        <div className="flex items-center justify-between w-full px-4 py-3">
+        <div className="flex items-center justify-between w-full py-3">
 
           {/* 왼쪽: 점수 / 최고기록 */}
           <div className="flex gap-6 flex-1">
