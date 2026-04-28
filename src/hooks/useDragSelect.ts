@@ -4,12 +4,12 @@ import { useGameStore } from '../store/gameStore'
 
 const OUTSIDE_MARGIN = 40
 
-function clampCell(x: number, y: number, boardW: number, boardH: number) {
-  const cellW = boardW / COLS
-  const cellH = boardH / ROWS
+function clampCell(x: number, y: number, boardW: number, boardH: number, cols: number, rows: number) {
+  const cellW = boardW / cols
+  const cellH = boardH / rows
   return {
-    row: Math.max(0, Math.min(ROWS - 1, Math.floor(y / cellH))),
-    col: Math.max(0, Math.min(COLS - 1, Math.floor(x / cellW))),
+    row: Math.max(0, Math.min(rows - 1, Math.floor(y / cellH))),
+    col: Math.max(0, Math.min(cols - 1, Math.floor(x / cellW))),
   }
 }
 
@@ -25,6 +25,8 @@ export function useDragSelect(
   boardRef: React.RefObject<HTMLDivElement | null>,
   { onDrag, onCommit, onCancel }: DragCallbacks,
   getPhase?: () => string,
+  gridCols = COLS,
+  gridRows = ROWS,
 ) {
   const startCell = useRef<{ row: number; col: number } | null>(null)
   const isDragging = useRef(false)
@@ -71,7 +73,7 @@ export function useDragSelect(
         y >= -OUTSIDE_MARGIN && y <= cr.h + OUTSIDE_MARGIN
       if (!inZone) return
       e.preventDefault()
-      const cell = clampCell(x, y, cr.w, cr.h)
+      const cell = clampCell(x, y, cr.w, cr.h, gridCols, gridRows)
       startCell.current = cell
       isDragging.current = true
       const rect: SelectionRect = { startRow: cell.row, startCol: cell.col, endRow: cell.row, endCol: cell.col }
@@ -88,7 +90,7 @@ export function useDragSelect(
         rafId.current = null
         if (!isDragging.current || !startCell.current || !cachedRect.current) return
         const cr = cachedRect.current
-        const { row, col } = clampCell(cx - cr.left, cy - cr.top, cr.w, cr.h)
+        const { row, col } = clampCell(cx - cr.left, cy - cr.top, cr.w, cr.h, gridCols, gridRows)
         const rect: SelectionRect = {
           startRow: startCell.current.row,
           startCol: startCell.current.col,
@@ -133,7 +135,7 @@ export function useDragSelect(
     const x = touch.clientX - cr.left
     const y = touch.clientY - cr.top
     if (x < 0 || x >= cr.w || y < 0 || y >= cr.h) return
-    const cell = clampCell(x, y, cr.w, cr.h)
+    const cell = clampCell(x, y, cr.w, cr.h, gridCols, gridRows)
     startCell.current = cell
     isDragging.current = true
     const rect: SelectionRect = { startRow: cell.row, startCol: cell.col, endRow: cell.row, endCol: cell.col }
