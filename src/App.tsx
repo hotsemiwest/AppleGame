@@ -12,6 +12,7 @@ import { MultiLobby } from './components/MultiLobby'
 import { MultiGame } from './components/MultiGame'
 import { MultiGameOver } from './components/MultiGameOver'
 import { MultiCountdown } from './components/MultiCountdown'
+import { SingleCountdown } from './components/SingleCountdown'
 
 const BOARD_WIDTH = 916
 
@@ -78,6 +79,7 @@ export default function App() {
       {multiPhase === 'waiting' && <MultiLobby />}
       {multiPhase === 'countdown' && <MultiCountdown />}
       {multiPhase === 'ended' && <MultiGameOver />}
+      {gamePhase === 'countdown' && multiPhase === 'off' && <SingleCountdown />}
     </div>
     </>
   )
