@@ -188,6 +188,12 @@ function subscribeChannel(roomCode: string) {
         }
       }
     )
+    .on('presence', { event: 'join' }, ({ newPresences }) => {
+      const s = useMultiStore.getState()
+      if (s.isHost && (newPresences as Array<Record<string, unknown>>).some(p => p['role'] === 'guest')) {
+        channel?.send({ type: 'broadcast', event: 'game_mode', payload: { gameMode: s.gameMode } })
+      }
+    })
     .on('presence', { event: 'leave' }, ({ leftPresences }) => {
       const s = useMultiStore.getState()
       const opId = s.opponentId
