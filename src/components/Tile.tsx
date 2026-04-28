@@ -17,8 +17,8 @@ function AppleSVG({ value, fill }: { value: number; fill: string }) {
   return (
     <svg viewBox="0 0 52 52" width="52" height="52" style={SVG_STYLE}>
       <g transform="translate(0, -3)">
-        <path d="M26 10 C26 7 29 4 32 5" stroke="#4a2c0a" strokeWidth="2" strokeLinecap="round" fill="none" />
-        <path d="M26 10 C27 6 34 6 32 11 C29 13 26 10 26 10Z" fill="#2e7d32" />
+        <path d="M26 14 C26 11 29 8 32 9" stroke="#4a2c0a" strokeWidth="2" strokeLinecap="round" fill="none" />
+        <path d="M26 14 C27 10 34 10 32 15 C29 17 26 14 26 14Z" fill="#2e7d32" />
         <path
           d="M 20 14 C 12 13 7 20 7 28 C 7 40 16 50 26 50 C 36 50 45 40 45 28 C 45 20 40 13 32 14 C 30 13 28 15 26 16 C 24 15 22 13 20 14 Z"
           fill={fill}
