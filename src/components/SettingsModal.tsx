@@ -11,7 +11,7 @@ import { Board, SelectionRect, Particle } from '../types/game'
 import { buildParticles } from '../store/gameStore'
 import { generateBoardWithSize } from '../utils/boardGenerator'
 
-const PREVIEW_COLS = 5
+const PREVIEW_COLS = 6
 const PREVIEW_ROWS = 9
 const TILE_S = 52
 const GAP_S = 2
@@ -93,7 +93,7 @@ export function SettingsModal({ onClose }: Props) {
     >
       <div
         className="rounded-3xl p-6 w-full mx-4 shadow-2xl"
-        style={{ maxWidth: 660, background: C.surface, border: `1px solid ${C.borderStrong}` }}
+        style={{ maxWidth: 720, background: C.surface, border: `1px solid ${C.borderStrong}` }}
         onClick={e => e.stopPropagation()}
       >
         {/* 헤더 */}
@@ -109,7 +109,7 @@ export function SettingsModal({ onClose }: Props) {
         </div>
 
         {/* 바디: 미리보기(좌) + 설정(우) */}
-        <div className="flex gap-6 items-start">
+        <div className="flex gap-8 items-start">
 
           {/* 미리보기 */}
           <div className="shrink-0">
