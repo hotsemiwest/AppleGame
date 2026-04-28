@@ -90,7 +90,7 @@ export function SettingsModal({ onClose }: Props) {
         </div>
 
         {/* 바디: 미리보기(좌) + 설정(우) */}
-        <div className="flex gap-8 items-start">
+        <div className="flex gap-6 items-start">
 
           {/* 미리보기 */}
           <div className="shrink-0">
