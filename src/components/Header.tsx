@@ -80,11 +80,23 @@ export function Header() {
                   </div>
                 )}
               </>
-            ) : personalBest > 0 ? (
-              <div className="text-center">
-                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
-                <div className="text-3xl font-black" style={{ color: C.accentYellow }}>{personalBest}</div>
-              </div>
+            ) : (personalBest > 0 || personalBestTime > 0) ? (
+              <>
+                {personalBest > 0 && (
+                  <div className="text-center">
+                    <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">⏱️ 스코어 어택</div>
+                    <div className="text-2xl font-black" style={{ color: C.accentYellow }}>
+                      {personalBest}<span className="text-sm font-semibold text-gray-400 ml-1">점</span>
+                    </div>
+                  </div>
+                )}
+                {personalBestTime > 0 && (
+                  <div className="text-center">
+                    <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">🎯 타임 어택</div>
+                    <div className="text-2xl font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</div>
+                  </div>
+                )}
+              </>
             ) : null}
           </div>
 
