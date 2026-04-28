@@ -11,12 +11,12 @@ export interface TileColorDef {
 }
 
 export const TILE_COLORS: TileColorDef[] = [
-  { id: 'red',     fill: '#D92B2B', label: '빨강' },
-  { id: 'crimson', fill: '#8B0000', label: '진빨강' },
-  { id: 'green',   fill: '#3d8b37', label: '초록' },
-  { id: 'forest',  fill: '#1B5E20', label: '진초록' },
-  { id: 'salmon',  fill: '#E07878', label: '살몬' },
-  { id: 'olive',   fill: '#7A7A00', label: '올리브' },
+  { id: 'red',     fill: '#e22121', label: '빨강' },
+  { id: 'crimson', fill: '#A30000', label: '진빨강' },
+  { id: 'green',   fill: '#509B37', label: '초록' },
+  { id: 'forest',  fill: '#2E571E', label: '진초록' },
+  { id: 'salmon',  fill: '#E5705B', label: '살몬' },
+  { id: 'olive',   fill: '#A38302', label: '올리브' },
 ]
 
 export const BOARD_BG: Record<Theme, { background: string; border: string }> = {
