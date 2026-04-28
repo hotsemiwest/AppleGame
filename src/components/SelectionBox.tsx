@@ -11,7 +11,15 @@ export interface SelectionBoxHandle {
   hide: () => void
 }
 
-export const SelectionBox = forwardRef<SelectionBoxHandle>(function SelectionBox(_, ref) {
+interface Props {
+  showSum?: boolean
+  showRangeColor?: boolean
+}
+
+export const SelectionBox = forwardRef<SelectionBoxHandle, Props>(function SelectionBox({
+  showSum = true,
+  showRangeColor = true,
+}, ref) {
   const boxRef = useRef<HTMLDivElement>(null)
   const sumRef = useRef<HTMLSpanElement>(null)
 
@@ -22,8 +30,12 @@ export const SelectionBox = forwardRef<SelectionBoxHandle>(function SelectionBox
 
       const isExact = sum === 10
       const isOver = sum > 10
-      const borderColor = isExact ? C.green : isOver ? C.red : C.blue
-      const bgColor = isExact ? C.exactBg : isOver ? C.overBg : C.neutralBg
+      const borderColor = showRangeColor
+        ? (isExact ? C.green : isOver ? C.red : C.blue)
+        : C.blue
+      const bgColor = showRangeColor
+        ? (isExact ? C.exactBg : isOver ? C.overBg : C.neutralBg)
+        : C.neutralBg
 
       const x = rect.minCol * CELL
       const y = rect.minRow * CELL
@@ -38,16 +50,16 @@ export const SelectionBox = forwardRef<SelectionBoxHandle>(function SelectionBox
       el.style.background = bgColor
 
       if (sumRef.current) {
-        sumRef.current.textContent = sum > 0 ? String(sum) : ''
+        sumRef.current.textContent = showSum && sum > 0 ? String(sum) : ''
         sumRef.current.style.background = borderColor
-        sumRef.current.style.display = sum > 0 ? 'block' : 'none'
+        sumRef.current.style.display = showSum && sum > 0 ? 'block' : 'none'
       }
     },
 
     hide() {
       if (boxRef.current) boxRef.current.style.display = 'none'
     },
-  }))
+  }), [showRangeColor, showSum])
 
   return (
     <div

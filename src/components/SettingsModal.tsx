@@ -9,9 +9,10 @@ import { useDragSelect } from '../hooks/useDragSelect'
 import { normalizeRect, sumRect, isValidSelection, clearRect } from '../utils/gameLogic'
 import { Board, SelectionRect, Particle } from '../types/game'
 import { buildParticles } from '../store/gameStore'
+import { generateBoardWithSize } from '../utils/boardGenerator'
 
 const PREVIEW_COLS = 5
-const PREVIEW_ROWS = 6
+const PREVIEW_ROWS = 9
 const TILE_S = 52
 const GAP_S = 2
 const CELL_S = TILE_S + GAP_S
@@ -19,15 +20,26 @@ const PREVIEW_W = PREVIEW_COLS * CELL_S - GAP_S
 const PREVIEW_H = PREVIEW_ROWS * CELL_S - GAP_S
 
 function generatePreviewBoard(): Board {
-  return Array.from({ length: PREVIEW_ROWS }, () =>
-    Array.from({ length: PREVIEW_COLS }, () => Math.ceil(Math.random() * 9))
-  ) as Board
+  return generateBoardWithSize(PREVIEW_ROWS, PREVIEW_COLS)
 }
 
 interface Props { onClose: () => void }
 
 export function SettingsModal({ onClose }: Props) {
-  const { theme, tileShape, tileColorId, showHintCount, setTheme, setTileShape, setTileColor, setShowHintCount } = useThemeStore()
+  const {
+    theme,
+    tileShape,
+    tileColorId,
+    showHintCount,
+    showDragSelectionSum,
+    showDragSelectionRangeColor,
+    setTheme,
+    setTileShape,
+    setTileColor,
+    setShowHintCount,
+    setShowDragSelectionSum,
+    setShowDragSelectionRangeColor,
+  } = useThemeStore()
 
   const [previewBoard, setPreviewBoard] = useState<Board>(generatePreviewBoard)
   const [previewParticles, setPreviewParticles] = useState<Particle[]>([])
@@ -125,7 +137,11 @@ export function SettingsModal({ onClose }: Props) {
               {previewBoard.flat().map((v, i) => (
                 <Tile key={i} value={v} />
               ))}
-              <SelectionBox ref={selRef} />
+              <SelectionBox
+                ref={selRef}
+                showSum={showDragSelectionSum}
+                showRangeColor={showDragSelectionRangeColor}
+              />
               <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 20, overflow: 'visible' }}>
                 {previewParticles.map(p => {
                   const cx = p.col * CELL_S + TILE_S / 2
@@ -210,13 +226,37 @@ export function SettingsModal({ onClose }: Props) {
               </div>
             </div>
 
+            <div>
+              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 선택 합계 표시</div>
+              <SegmentedControl
+                options={[
+                  { value: 'on',  label: '✅ 켜기' },
+                  { value: 'off', label: '❌ 끄기' },
+                ]}
+                value={showDragSelectionSum ? 'on' : 'off'}
+                onChange={v => setShowDragSelectionSum(v === 'on')}
+              />
+            </div>
+
+            <div>
+              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 범위별 박스 색상</div>
+              <SegmentedControl
+                options={[
+                  { value: 'on',  label: '✅ 켜기' },
+                  { value: 'off', label: '❌ 끄기' },
+                ]}
+                value={showDragSelectionRangeColor ? 'on' : 'off'}
+                onChange={v => setShowDragSelectionRangeColor(v === 'on')}
+              />
+            </div>
+
             {/* 조합 수 표시 */}
             <div>
               <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">게임 중 조합 수 표시</div>
               <SegmentedControl
                 options={[
-                  { value: 'on',  label: '켜기' },
-                  { value: 'off', label: '끄기' },
+                  { value: 'on',  label: '✅ 켜기' },
+                  { value: 'off', label: '❌ 끄기' },
                 ]}
                 value={showHintCount ? 'on' : 'off'}
                 onChange={v => setShowHintCount(v === 'on')}

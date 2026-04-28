@@ -9,15 +9,19 @@ interface ThemeState {
   tileShape: TileShape
   tileColorId: TileColorId
   showHintCount: boolean
+  showDragSelectionSum: boolean
+  showDragSelectionRangeColor: boolean
   setTheme: (t: Theme) => void
   setTileShape: (s: TileShape) => void
   setTileColor: (id: TileColorId) => void
   setShowHintCount: (v: boolean) => void
+  setShowDragSelectionSum: (v: boolean) => void
+  setShowDragSelectionRangeColor: (v: boolean) => void
 }
 
 const KEY = 'applebox_theme'
 
-type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount'>
+type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDragSelectionSum' | 'showDragSelectionRangeColor'>
 
 const THEMES: Theme[] = ['light', 'dark']
 const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square']
@@ -31,6 +35,8 @@ function load(): Partial<Saved> {
       tileShape: TILE_SHAPES.includes(saved.tileShape as TileShape) ? saved.tileShape : DEFAULT_SHAPE,
       tileColorId: TILE_COLORS.some(color => color.id === saved.tileColorId) ? saved.tileColorId : DEFAULT_COLOR,
       showHintCount: typeof saved.showHintCount === 'boolean' ? saved.showHintCount : true,
+      showDragSelectionSum: typeof saved.showDragSelectionSum === 'boolean' ? saved.showDragSelectionSum : true,
+      showDragSelectionRangeColor: typeof saved.showDragSelectionRangeColor === 'boolean' ? saved.showDragSelectionRangeColor : true,
     }
   } catch {
     return {}
@@ -46,10 +52,14 @@ export const useThemeStore = create<ThemeState>((set) => ({
   tileShape: DEFAULT_SHAPE,
   tileColorId: DEFAULT_COLOR,
   showHintCount: true,
+  showDragSelectionSum: true,
+  showDragSelectionRangeColor: true,
   ...load(),
 
-  setTheme:         (theme)         => { set({ theme });         save({ theme }) },
-  setTileShape:     (tileShape)     => { set({ tileShape });     save({ tileShape }) },
-  setTileColor:     (tileColorId)   => { set({ tileColorId });   save({ tileColorId }) },
-  setShowHintCount: (showHintCount) => { set({ showHintCount }); save({ showHintCount }) },
+  setTheme:                       (theme)                        => { set({ theme });                        save({ theme }) },
+  setTileShape:                   (tileShape)                    => { set({ tileShape });                    save({ tileShape }) },
+  setTileColor:                   (tileColorId)                  => { set({ tileColorId });                  save({ tileColorId }) },
+  setShowHintCount:               (showHintCount)                => { set({ showHintCount });                save({ showHintCount }) },
+  setShowDragSelectionSum:        (showDragSelectionSum)         => { set({ showDragSelectionSum });         save({ showDragSelectionSum }) },
+  setShowDragSelectionRangeColor: (showDragSelectionRangeColor)  => { set({ showDragSelectionRangeColor });  save({ showDragSelectionRangeColor }) },
 }))

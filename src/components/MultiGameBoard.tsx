@@ -25,6 +25,8 @@ export function MultiGameBoard() {
   const board = useMultiStore(s => s.board)
   const opponentName = useMultiStore(s => s.opponentName)
   const theme = useThemeStore(s => s.theme)
+  const showDragSelectionSum = useThemeStore(s => s.showDragSelectionSum)
+  const showDragSelectionRangeColor = useThemeStore(s => s.showDragSelectionRangeColor)
 
   // 상대방 드래그 박스를 DOM 직접 조작 — Zustand state 업데이트 없이 처리
   useEffect(() => {
@@ -129,7 +131,11 @@ export function MultiGameBoard() {
       )}
 
       {/* 내 선택 박스 */}
-      <SelectionBox ref={selBoxRef} />
+      <SelectionBox
+        ref={selBoxRef}
+        showSum={showDragSelectionSum}
+        showRangeColor={showDragSelectionRangeColor}
+      />
 
       {/* 파티클 이펙트 */}
       <ParticleLayer />

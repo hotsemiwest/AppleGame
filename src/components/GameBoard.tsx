@@ -21,6 +21,8 @@ export function GameBoard() {
   const board = useGameStore(state => state.board)
   const gamePhase = useGameStore(s => s.gamePhase)
   const theme = useThemeStore(s => s.theme)
+  const showDragSelectionSum = useThemeStore(s => s.showDragSelectionSum)
+  const showDragSelectionRangeColor = useThemeStore(s => s.showDragSelectionRangeColor)
   const hideTiles = gamePhase === 'countdown'
 
   // All three callbacks are stable (no deps) — they read latest state via getState()
@@ -70,7 +72,11 @@ export function GameBoard() {
         ))
       )}
 
-      <SelectionBox ref={selBoxRef} />
+      <SelectionBox
+        ref={selBoxRef}
+        showSum={showDragSelectionSum}
+        showRangeColor={showDragSelectionRangeColor}
+      />
       <ParticleLayer />
     </div>
   )
