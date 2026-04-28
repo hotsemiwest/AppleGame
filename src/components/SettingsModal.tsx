@@ -218,7 +218,7 @@ export function SettingsModal({ onClose }: Props) {
                 options={[
                   { value: 'apple',  label: '🍎 사과' },
                   { value: 'circle', label: '🔴 원형' },
-                  { value: 'square', label: '🟥  사각형' },
+                  { value: 'square', label: '🟥 사각형' },
                   { value: '8bit',   label: '🛑 8BIT' },
                 ]}
                 value={tileShape}
