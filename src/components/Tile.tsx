@@ -25,7 +25,7 @@ function AppleSVG({ value, fill }: { value: number; fill: string }) {
         />
         <ellipse cx="16" cy="24" rx="4.5" ry="2.8" fill="rgba(255,255,255,0.28)" transform="rotate(-25 16 24)" />
         <text x="26" y="33" textAnchor="middle" dominantBaseline="middle"
-          fill="rgba(255,255,255,0.95)" fontSize="26" fontWeight="900" style={TEXT_STYLE}>
+          fill="rgba(255,255,255,0.95)" fontSize="22" fontWeight="900" style={TEXT_STYLE}>
           {value}
         </text>
       </g>
