@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { Board, SelectionRect, GAME_DURATION } from '../types/game'
+import { Board, SelectionRect, GameMode, GAME_DURATION, TIME_ATTACK_TARGET } from '../types/game'
 import { generateBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { supabase, createMultiRoom, joinMultiRoom, startMultiGame, endMultiRoom } from '../lib/supabase'
@@ -21,14 +21,17 @@ export interface MultiState {
   myScore: number
   opponentScore: number
   timeLeft: number
+  elapsedTime: number
   winner: 'me' | 'opponent' | 'draw' | null
   error: string | null
   deadlockNotice: boolean
   opponentLeft: boolean
+  gameMode: GameMode
 
   openLobby: () => void
   createRoom: () => Promise<void>
   joinRoom: (code: string) => Promise<void>
+  setGameMode: (mode: GameMode) => void
   startGame: () => void
   beginPlaying: () => void
   confirmSelection: (rect: SelectionRect) => void
@@ -100,6 +103,11 @@ function subscribeChannel(roomCode: string) {
         useGameStore.getState().spawnOpponentParticles(payload.cleared_cells)
       }
 
+      if (s.gameMode === 'time' && opponentScore >= TIME_ATTACK_TARGET) {
+        endGame('opponent')
+        return
+      }
+
       if (s.isHost && !hasAnySolution(mergedBoard)) {
         handleDeadlock()
       }
@@ -109,10 +117,14 @@ function subscribeChannel(roomCode: string) {
       if (s.phase !== 'waiting') return
       useMultiStore.setState({
         board: payload.board as Board,
+        gameMode: (payload.gameMode as GameMode) ?? 'score',
         phase: 'countdown',
         myScore: 0,
         opponentScore: 0,
       })
+    })
+    .on('broadcast', { event: 'game_mode' }, ({ payload }) => {
+      useMultiStore.setState({ gameMode: (payload.gameMode as GameMode) ?? 'score' })
     })
     .on('broadcast', { event: 'drag' }, ({ payload }) => {
       if (payload.player_id === myId) return
@@ -131,7 +143,7 @@ function subscribeChannel(roomCode: string) {
         useMultiStore.setState({
           phase: 'off', roomCode: null, isHost: false,
           myId: null, myName: null, opponentId: null, opponentName: null,
-          board: null, myScore: 0, opponentScore: 0, timeLeft: GAME_DURATION,
+          board: null, myScore: 0, opponentScore: 0, timeLeft: GAME_DURATION, elapsedTime: 0,
           winner: null, error: '상대방이 게임을 나갔습니다.', deadlockNotice: false,
           opponentLeft: false,
         })
@@ -145,6 +157,7 @@ function subscribeChannel(roomCode: string) {
         myScore: 0,
         opponentScore: 0,
         timeLeft: GAME_DURATION,
+        elapsedTime: 0,
         winner: null,
         deadlockNotice: false,
         opponentLeft: false,
@@ -232,14 +245,21 @@ export const useMultiStore = create<MultiState>((set, get) => ({
   myScore: 0,
   opponentScore: 0,
   timeLeft: GAME_DURATION,
+  elapsedTime: 0,
   winner: null,
   error: null,
   deadlockNotice: false,
   opponentLeft: false,
+  gameMode: 'score' as GameMode,
 
   openLobby: () => {
     const { id, name } = getMe()
     set({ phase: 'lobby', myId: id, myName: name, error: null })
+  },
+
+  setGameMode: (mode: GameMode) => {
+    set({ gameMode: mode })
+    channel?.send({ type: 'broadcast', event: 'game_mode', payload: { gameMode: mode } })
   },
 
   createRoom: async () => {
@@ -292,23 +312,20 @@ export const useMultiStore = create<MultiState>((set, get) => ({
   },
 
   startGame: () => {
-    const { roomCode } = get()
+    const { roomCode, gameMode } = get()
     if (!roomCode) return
     const board = generateBoard()
-    // DB에 보드 저장 (비동기, 실패 무시)
     startMultiGame(roomCode, board as unknown as number[][]).catch(() => {})
-    // 카운트다운 브로드캐스트
     channel?.send({
       type: 'broadcast',
       event: 'countdown_start',
-      payload: { board },
+      payload: { board, gameMode },
     })
-    // 호스트 로컬 상태
     set({ board, phase: 'countdown', myScore: 0, opponentScore: 0 })
   },
 
   beginPlaying: () => {
-    set({ phase: 'playing', timeLeft: GAME_DURATION })
+    set({ phase: 'playing', timeLeft: GAME_DURATION, elapsedTime: 0 })
   },
 
   confirmSelection: (rect: SelectionRect) => {
@@ -330,6 +347,11 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       payload: { board: newBoard, host_score: hostScore, guest_score: guestScore, cleared_cells: cleared },
     })
 
+    if (s.gameMode === 'time' && myScore >= TIME_ATTACK_TARGET) {
+      endGame('me')
+      return
+    }
+
     if (s.isHost && !hasAnySolution(newBoard)) {
       handleDeadlock()
     }
@@ -345,13 +367,16 @@ export const useMultiStore = create<MultiState>((set, get) => ({
   },
 
   tick: () => {
-    const { timeLeft } = get()
-    if (timeLeft <= 1) {
-      const s = get()
-      const winner = s.myScore > s.opponentScore ? 'me' : s.myScore < s.opponentScore ? 'opponent' : 'draw'
-      endGame(winner)
+    const s = get()
+    if (s.gameMode === 'time') {
+      set({ elapsedTime: s.elapsedTime + 1 })
     } else {
-      set({ timeLeft: timeLeft - 1 })
+      if (s.timeLeft <= 1) {
+        const winner = s.myScore > s.opponentScore ? 'me' : s.myScore < s.opponentScore ? 'opponent' : 'draw'
+        endGame(winner)
+      } else {
+        set({ timeLeft: s.timeLeft - 1 })
+      }
     }
   },
 
@@ -364,6 +389,7 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       myScore: 0,
       opponentScore: 0,
       timeLeft: GAME_DURATION,
+      elapsedTime: 0,
       winner: null,
       deadlockNotice: false,
     })
@@ -396,10 +422,12 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       myScore: 0,
       opponentScore: 0,
       timeLeft: GAME_DURATION,
+      elapsedTime: 0,
       winner: null,
       error: null,
       deadlockNotice: false,
       opponentLeft: false,
+      gameMode: 'score',
     })
     opponentDragCallback?.(null)
   },
