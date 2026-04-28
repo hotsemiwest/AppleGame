@@ -96,15 +96,35 @@ export function StartBoard() {
           <h2 className={`text-3xl font-black mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AppleBox</h2>
           <p className="text-gray-400 mb-7">드래그로 합이 10이 되는 숫자들을 선택하세요</p>
 
-          {personalBest > 0 && (
-            <p className="font-semibold mt-5" style={{ color: C.accentYellow }}>
-              스코어 어택 최고: {personalBest}점
-            </p>
-          )}
-          {personalBestTime > 0 && (
-            <p className="font-semibold mt-1" style={{ color: C.orange }}>
-              타임 어택 최고: {formatTime(personalBestTime)}
-            </p>
+          {(personalBest > 0 || personalBestTime > 0) && (
+            <div className="flex gap-3 mt-5 w-full">
+              {personalBest > 0 && (
+                <div
+                  className="flex-1 rounded-2xl p-4 text-center relative overflow-hidden"
+                  style={{ background: C.surfaceRaised, border: '1px solid rgba(255,215,0,0.18)' }}
+                >
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #FFD700, #FF8C00)' }} />
+                  <div className="text-lg mb-1">⏱️</div>
+                  <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: C.textMuted }}>스코어 어택</div>
+                  <div className="text-3xl font-black" style={{ color: C.accentYellow }}>
+                    {personalBest}<span className="text-sm font-semibold ml-1" style={{ color: C.textMuted }}>점</span>
+                  </div>
+                </div>
+              )}
+              {personalBestTime > 0 && (
+                <div
+                  className="flex-1 rounded-2xl p-4 text-center relative overflow-hidden"
+                  style={{ background: C.surfaceRaised, border: '1px solid rgba(249,115,22,0.18)' }}
+                >
+                  <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #f97316, #FF8C00)' }} />
+                  <div className="text-lg mb-1">🎯</div>
+                  <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: C.textMuted }}>타임 어택</div>
+                  <div className="text-3xl font-black" style={{ color: C.orange }}>
+                    {formatTime(personalBestTime)}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
 
