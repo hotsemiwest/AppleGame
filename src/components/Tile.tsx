@@ -1,6 +1,6 @@
 import { memo } from 'react'
 import { useThemeStore } from '../store/themeStore'
-import { TILE_COLORS } from '../theme/tokens'
+import { TILE_COLORS, Theme } from '../theme/tokens'
 
 const TEXT_STYLE: React.CSSProperties = {
   userSelect: 'none',
@@ -13,11 +13,13 @@ const SVG_STYLE: React.CSSProperties = {
   filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.32))',
 }
 
-function AppleSVG({ value, fill }: { value: number; fill: string }) {
+function AppleSVG({ value, fill, theme }: { value: number; fill: string; theme: Theme }) {
+  const stemColor = theme === 'dark' ? '#956129' : '#6f4320'
+
   return (
     <svg viewBox="0 0 52 52" width="52" height="52" style={SVG_STYLE}>
       <g transform="translate(-0.8, -4) scale(1.04)">
-        <path d="M26 15 C26 12 28.5 9.5 31 10.5" stroke="#4a2c0a" strokeWidth="2" strokeLinecap="round" fill="none" />
+        <path d="M26 15 C26 12 28.5 9.5 31 10.5" stroke={stemColor} strokeWidth="2" strokeLinecap="round" fill="none" />
         <path
           d="M26 16 C21 12, 12.5 13, 8.5 20 C4.8 27, 7.9 39, 15.5 45.2 C20.3 49, 31.7 49, 36.5 45.2 C44.1 39, 47.2 27, 43.5 20 C39.5 13, 31 12, 26 16 Z"
           fill={fill}
@@ -83,6 +85,7 @@ function EightBitSVG({ value, fill }: { value: number; fill: string }) {
 export const Tile = memo(function Tile({ value }: { value: number | null }) {
   const tileShape   = useThemeStore(s => s.tileShape)
   const tileColorId = useThemeStore(s => s.tileColorId)
+  const theme = useThemeStore(s => s.theme)
 
   if (value === null) return <div style={{ width: 52, height: 52 }} />
 
@@ -91,5 +94,5 @@ export const Tile = memo(function Tile({ value }: { value: number | null }) {
   if (tileShape === 'circle') return <CircleSVG value={value} fill={fill} />
   if (tileShape === 'square') return <SquareSVG value={value} fill={fill} />
   if (tileShape === '8bit') return <EightBitSVG value={value} fill={fill} />
-  return <AppleSVG value={value} fill={fill} />
+  return <AppleSVG value={value} fill={fill} theme={theme} />
 })
