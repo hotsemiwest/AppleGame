@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/authStore'
 import { fetchProfile, fetchPublicProfile, ProfileData, checkDisplayNameTaken } from '../lib/supabase'
 import { ScoreChart } from './ScoreChart'
 import { C } from '../theme/tokens'
+import { SegmentedControl } from './SegmentedControl'
 import { formatTime } from '../utils/gameLogic'
 
 interface Props {
@@ -145,18 +146,14 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
         {data && !loading && (
           <>
             {/* 탭 */}
-            <div className="flex gap-1 p-1 rounded-xl" style={{ background: C.surfaceRaised }}>
-              <button
-                onClick={() => setTab('score')}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
-                style={tab === 'score' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
-              >⏱️ 스코어 어택</button>
-              <button
-                onClick={() => setTab('time')}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
-                style={tab === 'time' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
-              >🎯 타임 어택</button>
-            </div>
+            <SegmentedControl
+              options={[
+                { value: 'score', label: '⏱️ 스코어 어택' },
+                { value: 'time',  label: '🎯 타임 어택' },
+              ]}
+              value={tab}
+              onChange={setTab}
+            />
 
             {tab === 'score' && (
               <>
