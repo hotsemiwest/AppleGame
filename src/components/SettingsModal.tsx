@@ -101,7 +101,7 @@ export function SettingsModal({ onClose }: Props) {
 
           {/* 미리보기 */}
           <div className="shrink-0">
-            <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">미리보기</div>
+            <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">미리보기 (직접 드래그해보세요)</div>
             <div
               ref={previewRef}
               style={{
