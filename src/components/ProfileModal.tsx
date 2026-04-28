@@ -94,7 +94,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 value={editingName}
                 onChange={e => setEditingName(e.target.value.slice(0, 16))}
                 onKeyDown={e => { if (e.key === 'Enter') handleSaveName(); if (e.key === 'Escape') setEditingName(null) }}
-                className="text-center rounded-xl px-3 py-1.5 text-lg font-black outline-none border input-adaptive transition-colors w-48"
+                className="text-center rounded-xl px-3 py-1.5 text-lg font-bold outline-none border input-adaptive transition-colors w-48"
                 style={{ background: C.inputBg, color: C.textPrimary }}
                 autoFocus
               />
@@ -118,7 +118,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
             </div>
           ) : (
             <div className="flex flex-col items-center gap-1.5">
-              <div className="text-xl font-black" style={{ color: C.textPrimary }}>{shownName}</div>
+              <div className="text-xl font-bold" style={{ color: C.textPrimary }}>{shownName}</div>
               {isOwnProfile && (
                 <div className="text-xs text-gray-400">{user?.email}</div>
               )}
@@ -163,7 +163,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                       {data.rank <= 3 ? RANK_MEDALS[data.rank] : null}
                       {data.rank > 3 ? rankLabel(data.rank) : null}
                     </div>
-                    {data.rank <= 3 && <div className="text-lg font-black mt-1" style={{ color: rankColor(data.rank) }}>#{data.rank}위</div>}
+                    {data.rank <= 3 && <div className="text-lg font-bold mt-1" style={{ color: rankColor(data.rank) }}>#{data.rank}위</div>}
                     <div className="text-xs text-gray-500 mt-1">글로벌 랭킹</div>
                   </div>
                 ) : (
@@ -172,11 +172,11 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 <div className="flex gap-3">
                   <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                     <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 점수</div>
-                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>{data.bestScore ?? '-'}</div>
+                    <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>{data.bestScore ?? '-'}</div>
                   </div>
                   <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                     <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">플레이 횟수</div>
-                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
+                    <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>
                       {data.playCount}<span className="text-base font-semibold text-gray-400 ml-1">회</span>
                     </div>
                   </div>
@@ -201,7 +201,7 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                       {data.timeAttackRank <= 3 ? RANK_MEDALS[data.timeAttackRank] : null}
                       {data.timeAttackRank > 3 ? rankLabel(data.timeAttackRank) : null}
                     </div>
-                    {data.timeAttackRank <= 3 && <div className="text-lg font-black mt-1" style={{ color: rankColor(data.timeAttackRank) }}>#{data.timeAttackRank}위</div>}
+                    {data.timeAttackRank <= 3 && <div className="text-lg font-bold mt-1" style={{ color: rankColor(data.timeAttackRank) }}>#{data.timeAttackRank}위</div>}
                     <div className="text-xs text-gray-500 mt-1">글로벌 랭킹</div>
                   </div>
                 ) : (
@@ -210,13 +210,13 @@ export function ProfileModal({ onClose, targetUserId, targetDisplayName }: Props
                 <div className="flex gap-3">
                   <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                     <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">최고 기록</div>
-                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
+                    <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>
                       {data.bestTimeSeconds !== null ? formatTime(data.bestTimeSeconds) : '-'}
                     </div>
                   </div>
                   <div className="flex-1 rounded-2xl py-4 text-center" style={{ background: C.surfaceRaised }}>
                     <div className="text-xs text-gray-400 uppercase tracking-widest mb-1">플레이 횟수</div>
-                    <div className="text-3xl font-black" style={{ color: C.textPrimary }}>
+                    <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>
                       {data.timeAttackPlayCount}<span className="text-base font-semibold text-gray-400 ml-1">회</span>
                     </div>
                   </div>

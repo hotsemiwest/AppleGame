@@ -85,7 +85,7 @@ export function GameOverModal() {
           {/* 헤더 */}
           <div className="text-center mb-4">
             <div className="text-4xl mb-1">{isTimeAttack ? '🎯' : isNewRecord ? '🏆' : '⏱️'}</div>
-            <h2 className="text-2xl font-black" style={{ color: C.textPrimary }}>
+            <h2 className="text-2xl font-bold" style={{ color: C.textPrimary }}>
               {isTimeAttack ? '타임 어택 클리어!' : isNewRecord ? '신기록 달성!' : '게임 종료'}
             </h2>
             {isNewRecord && (
@@ -99,13 +99,13 @@ export function GameOverModal() {
               <div className="text-gray-400 text-xs uppercase tracking-widest">
                 {isTimeAttack ? '클리어 시간' : '최종 점수'}
               </div>
-              <div className="text-4xl font-black mt-0.5" style={{ color: C.textPrimary }}>
+              <div className="text-4xl font-bold mt-0.5" style={{ color: C.textPrimary }}>
                 {isTimeAttack ? formatTime(elapsedTime) : score}
               </div>
             </div>
             <div className="flex-1 rounded-2xl py-3 text-center" style={{ background: C.surfaceRaised }}>
               <div className="text-gray-400 text-xs uppercase tracking-widest">최고기록</div>
-              <div className="text-4xl font-black mt-0.5" style={{ color: C.accentYellow }}>
+              <div className="text-4xl font-bold mt-0.5" style={{ color: C.accentYellow }}>
                 {isTimeAttack
                   ? (personalBestTime > 0 ? formatTime(personalBestTime) : '-')
                   : personalBest}
@@ -123,7 +123,7 @@ export function GameOverModal() {
             <div className="mb-4">
               <button
                 onClick={() => setShowAuth(true)}
-                className="w-full py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 mb-2"
+                className="w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 mb-2"
               >
                 🏆 로그인 후 랭킹 등록하기
               </button>
@@ -191,14 +191,14 @@ export function GameOverModal() {
           <div className="flex gap-2 mt-auto pt-2">
             <button
               onClick={goHome}
-              className="flex-1 py-3.5 rounded-2xl text-base font-black transition-all active:scale-95 panel-hover"
+              className="flex-1 py-3.5 rounded-2xl text-base font-bold transition-all active:scale-95 panel-hover"
               style={{ background: C.surfaceRaised, color: C.textSub, border: `1px solid ${C.borderGhost}` }}
             >
               🏠 홈
             </button>
             <button
               onClick={startGame}
-              className="flex-1 py-3.5 rounded-2xl text-base font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg"
+              className="flex-1 py-3.5 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg"
             >
               다시 시작
             </button>

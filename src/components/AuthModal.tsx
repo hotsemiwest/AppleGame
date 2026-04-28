@@ -98,13 +98,13 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
           /* 회원가입 완료 화면 */
           <div className="text-center py-2">
             <div className="text-5xl mb-4">✉️</div>
-            <p className="font-black text-xl mb-2" style={{ color: C.textPrimary }}>인증 메일을 발송했습니다!</p>
+            <p className="font-bold text-xl mb-2" style={{ color: C.textPrimary }}>인증 메일을 발송했습니다!</p>
             <p className="text-gray-400 text-sm mb-6 leading-relaxed">
               메일함에서 인증 링크를 클릭한 후<br />로그인해 주세요.
             </p>
             <button
               onClick={handleGoToLogin}
-              className="w-full py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95"
+              className="w-full py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95"
             >
               로그인하러 가기
             </button>
@@ -117,7 +117,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
                 <button
                   key={t}
                   onClick={() => switchTab(t)}
-                  className={`flex-1 py-2.5 text-sm font-black transition-all ${
+                  className={`flex-1 py-2.5 text-sm font-bold transition-all ${
                     tab === t
                       ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
                       : 'text-gray-400'
@@ -200,7 +200,7 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="flex-1 py-3 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 disabled:opacity-50"
+                className="flex-1 py-3 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 disabled:opacity-50"
               >
                 {loading ? '처리 중...' : tab === 'login' ? '로그인' : '가입하기'}
               </button>

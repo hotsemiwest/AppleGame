@@ -92,7 +92,7 @@ export function StartBoard() {
         {/* 상단: 타이틀 + 설명 */}
         <div className="text-center w-full max-w-lg">
           <div className="text-5xl mb-4">🍎</div>
-          <h2 className={`text-3xl font-black mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AppleBox</h2>
+          <h2 className={`text-3xl font-bold mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AppleBox</h2>
           <p className="text-gray-400">드래그로 합이 10이 되는 숫자들을 선택하세요</p>
         </div>
 
@@ -102,13 +102,13 @@ export function StartBoard() {
           <div className="flex gap-2">
             <button
               onClick={startScoreAttack}
-              className="flex-1 py-4 rounded-2xl text-lg font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg shadow-green-500/20"
+              className="flex-1 py-4 rounded-2xl text-lg font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg shadow-green-500/20"
             >
               ⏱️ 스코어 어택
             </button>
             <button
               onClick={startTimeAttack}
-              className="flex-1 py-4 rounded-2xl text-lg font-black text-white transition-all active:scale-95 shadow-lg"
+              className="flex-1 py-4 rounded-2xl text-lg font-bold text-white transition-all active:scale-95 shadow-lg"
               style={{ background: `linear-gradient(135deg, ${C.orange}, ${C.amber})` }}
             >
               🎯 타임 어택
@@ -126,7 +126,7 @@ export function StartBoard() {
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="w-full py-4 rounded-2xl text-xl font-black text-white transition-all active:scale-95 disabled:opacity-60 shadow-lg"
+            className="w-full py-4 rounded-2xl text-xl font-bold text-white transition-all active:scale-95 disabled:opacity-60 shadow-lg"
             style={{ background: G.blueIndigo, boxShadow: `0 4px 20px ${C.indigoGlow}` }}
           >
             {creating ? '생성 중...' : '방 만들기'}
@@ -147,7 +147,7 @@ export function StartBoard() {
             <button
               onClick={handleJoin}
               disabled={joining || codeInput.trim().length !== 6}
-              className="px-6 py-4 rounded-2xl text-base font-black text-white transition-all active:scale-95 disabled:opacity-50"
+              className="px-6 py-4 rounded-2xl text-base font-bold text-white transition-all active:scale-95 disabled:opacity-50"
               style={{ background: G.blueIndigo }}
             >
               {joining ? '...' : '참여'}

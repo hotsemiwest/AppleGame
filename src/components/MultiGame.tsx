@@ -56,7 +56,7 @@ export function MultiGame() {
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold truncate max-w-[120px]">
             {isHost ? '👤 나' : `👤 ${hostName ?? '호스트'}`}
           </div>
-          <div className="text-3xl font-black" style={{ color: C.textPrimary }}>{hostScore}</div>
+          <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>{hostScore}</div>
         </div>
 
         {/* 타이머 */}
@@ -75,7 +75,7 @@ export function MultiGame() {
           <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold truncate max-w-[120px] ml-auto">
             {!isHost ? '👤 나' : `👤 ${guestName ?? '게스트'}`}
           </div>
-          <div className="text-3xl font-black" style={{ color: C.textPrimary }}>{guestScore}</div>
+          <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>{guestScore}</div>
         </div>
       </div>
 

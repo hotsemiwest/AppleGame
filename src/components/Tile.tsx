@@ -25,7 +25,7 @@ function AppleSVG({ value, fill }: { value: number; fill: string }) {
         />
         <ellipse cx="16" cy="24" rx="4.5" ry="2.8" fill="rgba(255,255,255,0.28)" transform="rotate(-25 16 24)" />
         <text x="26" y="33" textAnchor="middle" dominantBaseline="middle"
-          fill="rgba(255,255,255,0.95)" fontSize="22" fontWeight="900" style={TEXT_STYLE}>
+          fill="rgba(255,255,255,0.95)" fontSize="24" fontWeight="800" style={TEXT_STYLE}>
           {value}
         </text>
       </g>
@@ -39,7 +39,7 @@ function CircleSVG({ value, fill }: { value: number; fill: string }) {
       <circle cx="26" cy="26" r="19" fill={fill} />
       <ellipse cx="19" cy="19" rx="4" ry="2.5" fill="rgba(255,255,255,0.28)" transform="rotate(-25 19 19)" />
       <text x="26" y="27" textAnchor="middle" dominantBaseline="middle"
-        fill="rgba(255,255,255,0.95)" fontSize="22" fontWeight="900" style={TEXT_STYLE}>
+        fill="rgba(255,255,255,0.95)" fontSize="24" fontWeight="800" style={TEXT_STYLE}>
         {value}
       </text>
     </svg>
@@ -52,7 +52,7 @@ function SquareSVG({ value, fill }: { value: number; fill: string }) {
       <rect x="7" y="7" width="38" height="38" rx="9" fill={fill} />
       <ellipse cx="15" cy="14" rx="5" ry="3" fill="rgba(255,255,255,0.25)" transform="rotate(-20 15 14)" />
       <text x="26" y="27" textAnchor="middle" dominantBaseline="middle"
-        fill="rgba(255,255,255,0.95)" fontSize="22" fontWeight="900" style={TEXT_STYLE}>
+        fill="rgba(255,255,255,0.95)" fontSize="24" fontWeight="800" style={TEXT_STYLE}>
         {value}
       </text>
     </svg>

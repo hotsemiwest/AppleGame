@@ -50,14 +50,14 @@ export function Header() {
                   <>
                     <div className="text-center">
                       <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">진행도</div>
-                      <div className={`text-3xl font-black score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                      <div className={`text-3xl font-bold score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                         {score}<span className="text-base font-semibold text-gray-400">/{TIME_ATTACK_TARGET}</span>
                       </div>
                     </div>
                     {personalBestTime > 0 && (
                       <div className="text-center">
                         <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
-                        <div className="text-3xl font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</div>
+                        <div className="text-3xl font-bold" style={{ color: C.orange }}>{formatTime(personalBestTime)}</div>
                       </div>
                     )}
                   </>
@@ -65,18 +65,18 @@ export function Header() {
                   <>
                     <div className="text-center">
                       <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">점수</div>
-                      <div className={`text-3xl font-black score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{score}</div>
+                      <div className={`text-3xl font-bold score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{score}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>
-                      <div className="text-3xl font-black" style={{ color: C.accentYellow }}>{personalBest}</div>
+                      <div className="text-3xl font-bold" style={{ color: C.accentYellow }}>{personalBest}</div>
                     </div>
                   </>
                 )}
                 {showHintCount && gamePhase === 'playing' && (
                   <div className="text-center">
                     <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">조합 수</div>
-                    <div className="text-3xl font-black" style={{ color: C.blue }}>{solutionCount}</div>
+                    <div className="text-3xl font-bold" style={{ color: C.blue }}>{solutionCount}</div>
                   </div>
                 )}
               </>
@@ -88,7 +88,7 @@ export function Header() {
                     style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
                   >
                     <span style={{ color: C.textSub }}>⏱️스코어 어택</span>
-                    <span className="font-black" style={{ color: C.accentYellow }}>{personalBest}점</span>
+                    <span className="font-bold" style={{ color: C.accentYellow }}>{personalBest}점</span>
                   </div>
                 )}
                 {personalBestTime > 0 && (
@@ -97,7 +97,7 @@ export function Header() {
                     style={{ background: C.surfaceRaised, border: `1px solid ${C.borderGhost}` }}
                   >
                     <span style={{ color: C.textSub }}>🎯타임 어택</span>
-                    <span className="font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</span>
+                    <span className="font-bold" style={{ color: C.accentYellow }}>{formatTime(personalBestTime)}</span>
                   </div>
                 )}
               </div>
@@ -228,7 +228,7 @@ export function Header() {
             style={{ maxWidth: 360, maxHeight: '80vh', overflowY: 'auto', background: C.surface, border: `1px solid ${C.borderStrong}` }}
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="text-xl font-black text-center mb-3" style={{ color: C.textPrimary }}>🏆 TOP 10</h2>
+            <h2 className="text-xl font-bold text-center mb-3" style={{ color: C.textPrimary }}>🏆 TOP 10</h2>
             <div className="mb-3">
               <SegmentedControl
                 options={[

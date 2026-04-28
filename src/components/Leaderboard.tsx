@@ -62,7 +62,7 @@ export function Leaderboard({ mode = 'score', highlightName, highlightScore, hig
                   {entry.display_name}
                 </span>
               )}
-              <span className="font-black tabular-nums" style={{ color: isMe ? C.accentYellow : C.textPrimary }}>
+              <span className="font-bold tabular-nums" style={{ color: isMe ? C.accentYellow : C.textPrimary }}>
                 {formatTime(entry.best_time_seconds)}
               </span>
             </div>
@@ -96,7 +96,7 @@ export function Leaderboard({ mode = 'score', highlightName, highlightScore, hig
                 {entry.display_name}
               </span>
             )}
-            <span className="font-black tabular-nums" style={{ color: isMe ? C.accentYellow : C.textPrimary }}>
+            <span className="font-bold tabular-nums" style={{ color: isMe ? C.accentYellow : C.textPrimary }}>
               {entry.score}
             </span>
           </div>

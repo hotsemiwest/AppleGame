@@ -45,7 +45,7 @@ export function SettingsModal({ onClose }: Props) {
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-xl font-black" style={{ color: C.textPrimary }}>⚙️ 설정</h2>
+          <h2 className="text-xl font-bold" style={{ color: C.textPrimary }}>⚙️ 설정</h2>
           <button
             onClick={onClose}
             className="text-2xl leading-none transition-all"
@@ -94,9 +94,6 @@ export function SettingsModal({ onClose }: Props) {
                 className="flex-1 aspect-square rounded-xl transition-all active:scale-90"
                 style={{
                   background: color.fill,
-                  border: tileColorId === color.id
-                    ? `3px solid ${C.textPrimary}`
-                    : '3px solid transparent',
                   outline: tileColorId === color.id ? `2px solid ${color.fill}` : 'none',
                   outlineOffset: 2,
                   height: 40,

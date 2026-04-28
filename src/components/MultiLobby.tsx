@@ -26,7 +26,7 @@ export function MultiLobby() {
         {/* 헤더 */}
         <div className="text-center mb-5">
           <div className="text-4xl mb-2">👥</div>
-          <h2 className="text-xl font-black" style={{ color: C.textPrimary }}>멀티 게임</h2>
+          <h2 className="text-xl font-bold" style={{ color: C.textPrimary }}>멀티 게임</h2>
           {myName && <p className="text-gray-400 text-sm mt-1">👤 {myName}</p>}
         </div>
 
@@ -39,7 +39,7 @@ export function MultiLobby() {
                 style={{ background: C.roomBg, border: `1px solid ${C.roomBorder}` }}
               >
                 <p className="text-gray-400 text-xs uppercase tracking-widest font-semibold mb-2">방 코드</p>
-                <p className="text-4xl font-black tracking-widest" style={{ color: C.textPrimary }}>{roomCode}</p>
+                <p className="text-4xl font-bold tracking-widest" style={{ color: C.textPrimary }}>{roomCode}</p>
                 <button
                   onClick={handleCopy}
                   className="mt-2 px-4 py-1.5 rounded-lg text-xs font-semibold transition-all active:scale-95"
@@ -69,7 +69,7 @@ export function MultiLobby() {
               <button
                 onClick={startGame}
                 disabled={!opponentName}
-                className="w-full py-3.5 rounded-2xl text-sm font-black text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full py-3.5 rounded-2xl text-sm font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 게임 시작
               </button>
