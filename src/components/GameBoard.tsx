@@ -19,7 +19,9 @@ export function GameBoard() {
   const boardRef = useRef<HTMLDivElement>(null)
   const selBoxRef = useRef<SelectionBoxHandle>(null)
   const board = useGameStore(state => state.board)
+  const gamePhase = useGameStore(s => s.gamePhase)
   const theme = useThemeStore(s => s.theme)
+  const hideTiles = gamePhase === 'countdown'
 
   // All three callbacks are stable (no deps) — they read latest state via getState()
   const handleDrag = useCallback((rect: SelectionRect) => {
@@ -62,7 +64,7 @@ export function GameBoard() {
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
-      {board.map((row, r) =>
+      {!hideTiles && board.map((row, r) =>
         row.map((cell, c) => (
           <Tile key={`${r}-${c}`} value={cell} />
         ))

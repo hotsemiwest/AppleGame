@@ -110,6 +110,7 @@ interface GameState {
   gameMode: GameMode
   timeLeft: number
   elapsedTime: number  // seconds, counts up in time attack
+  gameStartedAt: number  // Date.now() when playing began
   particles: Particle[]
   scorePopups: ScorePopup[]
   isNewRecord: boolean
@@ -118,6 +119,7 @@ interface GameState {
   startScoreAttack: () => void
   startTimeAttack: () => void
   beginPlaying: () => void
+  syncTime: () => void
   endGame: () => void
   goHome: () => void
   resetPersonalBest: () => void
@@ -138,6 +140,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   gameMode: 'score',
   timeLeft: GAME_DURATION,
   elapsedTime: 0,
+  gameStartedAt: 0,
   particles: [],
   scorePopups: [],
   isNewRecord: false,
@@ -160,11 +163,25 @@ export const useGameStore = create<GameState>((set, get) => ({
       score: 0,
       timeLeft: GAME_DURATION,
       elapsedTime: 0,
+      gameStartedAt: Date.now(),
       particles: [],
       scorePopups: [],
       gamePhase: 'playing',
       isNewRecord: false,
     })
+  },
+
+  syncTime: () => {
+    const { gameStartedAt, gameMode, gamePhase } = get()
+    if (gamePhase !== 'playing' || !gameStartedAt) return
+    const elapsed = Math.floor((Date.now() - gameStartedAt) / 1000)
+    if (gameMode === 'score') {
+      const newTimeLeft = Math.max(0, GAME_DURATION - elapsed)
+      if (newTimeLeft <= 0) get().endGame()
+      else set({ timeLeft: newTimeLeft })
+    } else {
+      set({ elapsedTime: elapsed })
+    }
   },
 
   goHome: () => {
@@ -263,17 +280,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     }, duration + 200)
   },
 
-  tick: () => {
-    const { timeLeft, elapsedTime, gameMode } = get()
-    if (gameMode === 'score') {
-      if (timeLeft <= 1) {
-        get().endGame()
-      } else {
-        set({ timeLeft: timeLeft - 1 })
-      }
-    } else {
-      set({ elapsedTime: elapsedTime + 1 })
-    }
-  },
+  tick: () => { get().syncTime() },
 
 }))

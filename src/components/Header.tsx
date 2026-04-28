@@ -8,7 +8,7 @@ import { TIME_ATTACK_TARGET } from '../types/game'
 import { Leaderboard } from './Leaderboard'
 import { AuthModal } from './AuthModal'
 import { ProfileModal } from './ProfileModal'
-import { SettingsModal } from './SettingsModal'
+import { SettingsButton } from './SettingsButton'
 import { C, G } from '../theme/tokens'
 import { SegmentedControl } from './SegmentedControl'
 
@@ -26,7 +26,6 @@ export function Header() {
   const [leaderboardTab, setLeaderboardTab] = useState<'score' | 'time'>('score')
   const [showAuth, setShowAuth] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
-  const [showSettings, setShowSettings] = useState(false)
   const [selectedUser, setSelectedUser] = useState<{ user_id: string; display_name: string } | null>(null)
 
   function handleLeaderboardUserClick(entry: { user_id: string; display_name: string }) {
@@ -133,13 +132,7 @@ export function Header() {
           <div className="flex items-center justify-end gap-2 flex-1">
             {isStart ? (
               <>
-                <button
-                  onClick={() => setShowSettings(true)}
-                  className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
-                  style={{ background: C.surfaceRaised, color: C.textSub, border: `1px solid ${C.borderGhost}` }}
-                >
-                  ⚙️ 설정
-                </button>
+                <SettingsButton />
                 <button
                   onClick={() => setShowLeaderboard(true)}
                   className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
@@ -177,6 +170,7 @@ export function Header() {
               </>
             ) : (
               <>
+                <SettingsButton />
                 <button
                   onClick={goHome}
                   className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
@@ -274,8 +268,6 @@ export function Header() {
           targetDisplayName={selectedUser.display_name}
         />
       )}
-
-      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </>
   )
 }

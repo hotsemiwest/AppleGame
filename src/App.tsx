@@ -24,7 +24,7 @@ function ThemeSync() {
 }
 
 export default function App() {
-  const { gamePhase, tick, beginPlaying } = useGameStore()
+  const { gamePhase, tick, syncTime, beginPlaying } = useGameStore()
   const { initialize, pendingAuth, setPendingAuth } = useAuthStore()
   const multiPhase = useMultiStore(s => s.phase)
   const multiBeginPlaying = useMultiStore(s => s.beginPlaying)
@@ -40,8 +40,13 @@ export default function App() {
   useEffect(() => {
     if (gamePhase !== 'playing') return
     const id = setInterval(tick, 1000)
-    return () => clearInterval(id)
-  }, [gamePhase, tick])
+    const onVisible = () => { if (!document.hidden) syncTime() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [gamePhase, tick, syncTime])
 
   return (
     <>
