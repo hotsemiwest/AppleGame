@@ -10,6 +10,7 @@ import { AuthModal } from './AuthModal'
 import { ProfileModal } from './ProfileModal'
 import { SettingsModal } from './SettingsModal'
 import { C, G } from '../theme/tokens'
+import { SegmentedControl } from './SegmentedControl'
 
 export function Header() {
   const { score, personalBest, personalBestTime, timeLeft, elapsedTime, gameMode, gamePhase, startGame, goHome, board } = useGameStore()
@@ -212,17 +213,15 @@ export function Header() {
             onClick={e => e.stopPropagation()}
           >
             <h2 className="text-xl font-black text-center mb-3" style={{ color: C.textPrimary }}>🏆 TOP 10</h2>
-            <div className="flex gap-1 mb-3 p-1 rounded-xl" style={{ background: C.surfaceRaised }}>
-              <button
-                onClick={() => setLeaderboardTab('score')}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
-                style={leaderboardTab === 'score' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
-              >⏱️ 스코어 어택</button>
-              <button
-                onClick={() => setLeaderboardTab('time')}
-                className="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all"
-                style={leaderboardTab === 'time' ? { background: C.surface, color: C.textPrimary } : { color: C.textMuted }}
-              >🎯 타임 어택</button>
+            <div className="mb-3">
+              <SegmentedControl
+                options={[
+                  { value: 'score', label: '⏱️ 스코어 어택' },
+                  { value: 'time',  label: '🎯 타임 어택' },
+                ]}
+                value={leaderboardTab}
+                onChange={setLeaderboardTab}
+              />
             </div>
             <Leaderboard mode={leaderboardTab} onUserClick={handleLeaderboardUserClick} />
             <button
