@@ -118,7 +118,7 @@ export function Header() {
                   <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">남은 시간</div>
                   <div
                     className={`text-4xl font-black tabular-nums transition-colors ${
-                      isUrgent ? 'text-red-400 timer-shake' : theme === 'light' ? 'text-gray-900' : 'text-white'
+                      isUrgent ? `${theme === 'light' ? 'text-red-600' : 'text-red-400'} timer-shake` : theme === 'light' ? 'text-gray-900' : 'text-white'
                     }`}
                   >
                     {formatTime(timeLeft)}
