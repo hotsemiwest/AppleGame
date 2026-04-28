@@ -21,12 +21,17 @@ interface DragCallbacks {
   onCancel: () => void
 }
 
+interface DragSelectOptions {
+  requireStartInside?: boolean
+}
+
 export function useDragSelect(
   boardRef: React.RefObject<HTMLDivElement | null>,
   { onDrag, onCommit, onCancel }: DragCallbacks,
   getPhase?: () => string,
   gridCols = COLS,
   gridRows = ROWS,
+  { requireStartInside = false }: DragSelectOptions = {},
 ) {
   const startCell = useRef<{ row: number; col: number } | null>(null)
   const isDragging = useRef(false)
@@ -68,9 +73,10 @@ export function useDragSelect(
       if (!cr) return
       const x = e.clientX - cr.left
       const y = e.clientY - cr.top
-      const inZone =
-        x >= -OUTSIDE_MARGIN && x <= cr.w + OUTSIDE_MARGIN &&
-        y >= -OUTSIDE_MARGIN && y <= cr.h + OUTSIDE_MARGIN
+      const inZone = requireStartInside
+        ? x >= 0 && x < cr.w && y >= 0 && y < cr.h
+        : x >= -OUTSIDE_MARGIN && x <= cr.w + OUTSIDE_MARGIN &&
+          y >= -OUTSIDE_MARGIN && y <= cr.h + OUTSIDE_MARGIN
       if (!inZone) return
       e.preventDefault()
       const cell = clampCell(x, y, cr.w, cr.h, gridCols, gridRows)
@@ -123,7 +129,7 @@ export function useDragSelect(
       document.removeEventListener('mouseup', onMouseUp)
       if (rafId.current !== null) cancelAnimationFrame(rafId.current)
     }
-  }, [refreshCache])
+  }, [getPhase, gridCols, gridRows, refreshCache, requireStartInside])
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     const phase = getPhase ? getPhase() : useGameStore.getState().gamePhase
@@ -141,7 +147,7 @@ export function useDragSelect(
     const rect: SelectionRect = { startRow: cell.row, startCol: cell.col, endRow: cell.row, endCol: cell.col }
     currentRect.current = rect
     onDragRef.current(rect)
-  }, [refreshCache, getPhase])
+  }, [getPhase, gridCols, gridRows, refreshCache])
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isDragging.current || !startCell.current || !cachedRect.current) return

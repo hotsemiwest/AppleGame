@@ -46,12 +46,18 @@ export function SettingsModal({ onClose }: Props) {
   const previewRef = useRef<HTMLDivElement>(null)
   const selRef = useRef<SelectionBoxHandle>(null)
 
+  const resetPreviewBoard = useCallback(() => {
+    selRef.current?.hide()
+    setPreviewParticles([])
+    setPreviewBoard(generatePreviewBoard())
+  }, [])
+
   useEffect(() => {
     const nulls = previewBoard.flat().filter(v => v === null).length
     if (nulls >= Math.floor(PREVIEW_COLS * PREVIEW_ROWS / 2)) {
-      setPreviewBoard(generatePreviewBoard())
+      resetPreviewBoard()
     }
-  }, [previewBoard])
+  }, [previewBoard, resetPreviewBoard])
 
   const onPreviewDrag = useCallback((rect: SelectionRect) => {
     selRef.current?.show(normalizeRect(rect), sumRect(previewBoard, rect))
@@ -77,6 +83,7 @@ export function SettingsModal({ onClose }: Props) {
     () => 'playing',
     PREVIEW_COLS,
     PREVIEW_ROWS,
+    { requireStartInside: true },
   )
 
   useEffect(() => {
@@ -113,7 +120,20 @@ export function SettingsModal({ onClose }: Props) {
 
           {/* 미리보기 */}
           <div className="shrink-0">
-            <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">미리보기 (직접 드래그해보세요)</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">미리보기 (직접 드래그해보세요)</div>
+              <button
+                onClick={resetPreviewBoard}
+                className="rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all active:scale-95"
+                style={{
+                  color: C.textSub,
+                  background: C.surfaceRaised,
+                  border: `1px solid ${C.borderFaint}`,
+                }}
+              >
+                초기화
+              </button>
+            </div>
             <div
               ref={previewRef}
               style={{
