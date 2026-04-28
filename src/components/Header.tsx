@@ -81,22 +81,20 @@ export function Header() {
                 )}
               </>
             ) : (personalBest > 0 || personalBestTime > 0) ? (
-              <>
+              <div className="flex flex-col gap-1">
                 {personalBest > 0 && (
-                  <div className="text-center">
-                    <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">⏱️ 스코어 어택</div>
-                    <div className="text-2xl font-black" style={{ color: C.accentYellow }}>
-                      {personalBest}<span className="text-sm font-semibold text-gray-400 ml-1">점</span>
-                    </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 font-semibold">⏱️ 스코어 어택</span>
+                    <span className="text-sm font-black" style={{ color: C.accentYellow }}>{personalBest}점</span>
                   </div>
                 )}
                 {personalBestTime > 0 && (
-                  <div className="text-center">
-                    <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">🎯 타임 어택</div>
-                    <div className="text-2xl font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 font-semibold">🎯 타임 어택</span>
+                    <span className="text-sm font-black" style={{ color: C.orange }}>{formatTime(personalBestTime)}</span>
                   </div>
                 )}
-              </>
+              </div>
             ) : null}
           </div>
 
