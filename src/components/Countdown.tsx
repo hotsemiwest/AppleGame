@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { useGameStore } from '../store/gameStore'
 import { C } from '../theme/tokens'
 
-export function SingleCountdown() {
-  const beginPlaying = useGameStore(s => s.beginPlaying)
+interface Props {
+  onFinish: () => void
+}
+
+export function Countdown({ onFinish }: Props) {
   const [count, setCount] = useState(3)
 
   useEffect(() => {
@@ -11,11 +13,11 @@ export function SingleCountdown() {
       if (count > 0) {
         setCount(c => c - 1)
       } else {
-        beginPlaying()
+        onFinish()
       }
     }, 1000)
     return () => clearTimeout(id)
-  }, [count, beginPlaying])
+  }, [count, onFinish])
 
   const isGo = count <= 0
   const display = isGo ? 'GO!' : String(count)

@@ -11,8 +11,7 @@ import { StartBoard } from './components/StartBoard'
 import { MultiLobby } from './components/MultiLobby'
 import { MultiGame } from './components/MultiGame'
 import { MultiGameOver } from './components/MultiGameOver'
-import { MultiCountdown } from './components/MultiCountdown'
-import { SingleCountdown } from './components/SingleCountdown'
+import { Countdown } from './components/Countdown'
 
 const BOARD_WIDTH = 916
 
@@ -25,9 +24,10 @@ function ThemeSync() {
 }
 
 export default function App() {
-  const { gamePhase, tick } = useGameStore()
+  const { gamePhase, tick, beginPlaying } = useGameStore()
   const { initialize, pendingAuth, setPendingAuth } = useAuthStore()
   const multiPhase = useMultiStore(s => s.phase)
+  const multiBeginPlaying = useMultiStore(s => s.beginPlaying)
 
   useEffect(() => { initialize() }, [initialize])
 
@@ -77,9 +77,9 @@ export default function App() {
       {gamePhase === 'ended' && multiPhase === 'off' && <GameOverModal />}
 
       {multiPhase === 'waiting' && <MultiLobby />}
-      {multiPhase === 'countdown' && <MultiCountdown />}
+      {multiPhase === 'countdown' && <Countdown onFinish={multiBeginPlaying} />}
       {multiPhase === 'ended' && <MultiGameOver />}
-      {gamePhase === 'countdown' && multiPhase === 'off' && <SingleCountdown />}
+      {gamePhase === 'countdown' && multiPhase === 'off' && <Countdown onFinish={beginPlaying} />}
     </div>
     </>
   )

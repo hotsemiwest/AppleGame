@@ -24,14 +24,13 @@ export interface MultiState {
   winner: 'me' | 'opponent' | 'draw' | null
   error: string | null
   deadlockNotice: boolean
-  countdownValue: number
   opponentLeft: boolean
 
   openLobby: () => void
   createRoom: () => Promise<void>
   joinRoom: (code: string) => Promise<void>
   startGame: () => void
-  decrementCountdown: () => void
+  beginPlaying: () => void
   confirmSelection: (rect: SelectionRect) => void
   broadcastDrag: (rect: SelectionRect | null) => void
   tick: () => void
@@ -111,7 +110,6 @@ function subscribeChannel(roomCode: string) {
       useMultiStore.setState({
         board: payload.board as Board,
         phase: 'countdown',
-        countdownValue: 3,
         myScore: 0,
         opponentScore: 0,
       })
@@ -135,7 +133,7 @@ function subscribeChannel(roomCode: string) {
           myId: null, myName: null, opponentId: null, opponentName: null,
           board: null, myScore: 0, opponentScore: 0, timeLeft: GAME_DURATION,
           winner: null, error: '상대방이 게임을 나갔습니다.', deadlockNotice: false,
-          countdownValue: 3, opponentLeft: false,
+          opponentLeft: false,
         })
         opponentDragCallback?.(null)
       }
@@ -149,7 +147,6 @@ function subscribeChannel(roomCode: string) {
         timeLeft: GAME_DURATION,
         winner: null,
         deadlockNotice: false,
-        countdownValue: 3,
         opponentLeft: false,
       })
     })
@@ -172,7 +169,6 @@ function subscribeChannel(roomCode: string) {
           useMultiStore.setState({
             board: row.board as Board,
             phase: 'countdown',
-            countdownValue: 3,
             myScore: 0,
             opponentScore: 0,
           })
@@ -239,7 +235,6 @@ export const useMultiStore = create<MultiState>((set, get) => ({
   winner: null,
   error: null,
   deadlockNotice: false,
-  countdownValue: 3,
   opponentLeft: false,
 
   openLobby: () => {
@@ -309,16 +304,11 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       payload: { board },
     })
     // 호스트 로컬 상태
-    set({ board, phase: 'countdown', countdownValue: 3, myScore: 0, opponentScore: 0 })
+    set({ board, phase: 'countdown', myScore: 0, opponentScore: 0 })
   },
 
-  decrementCountdown: () => {
-    const { countdownValue } = get()
-    if (countdownValue <= 1) {
-      set({ phase: 'playing', timeLeft: GAME_DURATION })
-    } else {
-      set({ countdownValue: countdownValue - 1 })
-    }
+  beginPlaying: () => {
+    set({ phase: 'playing', timeLeft: GAME_DURATION })
   },
 
   confirmSelection: (rect: SelectionRect) => {
@@ -376,7 +366,6 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       timeLeft: GAME_DURATION,
       winner: null,
       deadlockNotice: false,
-      countdownValue: 3,
     })
   },
 
@@ -410,7 +399,6 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       winner: null,
       error: null,
       deadlockNotice: false,
-      countdownValue: 3,
       opponentLeft: false,
     })
     opponentDragCallback?.(null)
