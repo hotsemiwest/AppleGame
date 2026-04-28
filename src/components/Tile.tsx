@@ -16,7 +16,7 @@ const SVG_STYLE: React.CSSProperties = {
 function AppleSVG({ value, fill }: { value: number; fill: string }) {
   return (
     <svg viewBox="0 0 52 52" width="52" height="52" style={SVG_STYLE}>
-      <g transform="translate(0, -3)">
+      <g transform="translate(-0.8, -4) scale(1.04)">
         <path d="M26 15 C26 12 28.5 9.5 31 10.5" stroke="#4a2c0a" strokeWidth="2" strokeLinecap="round" fill="none" />
         <path
           d="M26 16 C21 12, 12.5 13, 8.5 20 C4.8 27, 7.9 39, 15.5 45.2 C20.3 49, 31.7 49, 36.5 45.2 C44.1 39, 47.2 27, 43.5 20 C39.5 13, 31 12, 26 16 Z"
@@ -35,8 +35,8 @@ function AppleSVG({ value, fill }: { value: number; fill: string }) {
 function CircleSVG({ value, fill }: { value: number; fill: string }) {
   return (
     <svg viewBox="0 0 52 52" width="52" height="52" style={SVG_STYLE}>
-      <circle cx="26" cy="26" r="19" fill={fill} />
-      <ellipse cx="19" cy="19" rx="4" ry="2.5" fill="rgba(255,255,255,0.28)" transform="rotate(-25 19 19)" />
+      <circle cx="26" cy="26" r="20.5" fill={fill} />
+      <ellipse cx="18" cy="18" rx="4.5" ry="2.8" fill="rgba(255,255,255,0.28)" transform="rotate(-25 18 18)" />
       <text x="26" y="28" textAnchor="middle" dominantBaseline="middle"
         fill="rgba(255,255,255,0.95)" fontSize="24" fontWeight="800" style={TEXT_STYLE}>
         {value}
