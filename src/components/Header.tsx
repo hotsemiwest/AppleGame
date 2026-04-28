@@ -176,7 +176,7 @@ export function Header() {
                   className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
                   style={{ background: C.surfaceRaised, color: C.textSub, border: `1px solid ${C.borderGhost}` }}
                 >
-                  🏠 홈
+                  🏠 나가기
                 </button>
                 <button
                   onClick={startGame}
