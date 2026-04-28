@@ -129,8 +129,8 @@ export function SettingsModal({ onClose }: Props) {
               <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">테마</div>
               <SegmentedControl
                 options={[
-                  { value: 'dark',  label: '🌙 다크' },
                   { value: 'light', label: '☀️ 라이트' },
+                  { value: 'dark',  label: '🌙 다크' }
                 ]}
                 value={theme}
                 onChange={setTheme}
