@@ -117,6 +117,7 @@ interface GameState {
   startGame: () => void
   startScoreAttack: () => void
   startTimeAttack: () => void
+  beginPlaying: () => void
   endGame: () => void
   goHome: () => void
   resetPersonalBest: () => void
@@ -142,6 +143,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   isNewRecord: false,
 
   startGame: () => {
+    get().beginPlaying()
+  },
+
+  startScoreAttack: () => {
+    set({ gameMode: 'score', gamePhase: 'countdown' })
+  },
+
+  startTimeAttack: () => {
+    set({ gameMode: 'time', gamePhase: 'countdown' })
+  },
+
+  beginPlaying: () => {
     set({
       board: generateBoard(),
       score: 0,
@@ -152,16 +165,6 @@ export const useGameStore = create<GameState>((set, get) => ({
       gamePhase: 'playing',
       isNewRecord: false,
     })
-  },
-
-  startScoreAttack: () => {
-    set({ gameMode: 'score' })
-    get().startGame()
-  },
-
-  startTimeAttack: () => {
-    set({ gameMode: 'time' })
-    get().startGame()
   },
 
   goHome: () => {
