@@ -82,10 +82,10 @@ export const SelectionBox = forwardRef<SelectionBoxHandle, Props>(function Selec
         style={{
           display: 'none',
           position: 'absolute',
-          top: -24,
+          top: -22,
           left: '50%',
           transform: 'translateX(-50%)',
-          borderRadius: 9999,
+          borderRadius: '10px 10px 0 0',
           padding: '2px 8px',
           fontSize: 12,
           fontWeight: 700,
