@@ -16,7 +16,7 @@ export interface NormalizedRect {
   maxCol: number
 }
 
-export type GamePhase = 'start' | 'playing' | 'ended'
+export type GamePhase = 'start' | 'countdown' | 'playing' | 'ended'
 export type GameMode = 'score' | 'time'
 export const TIME_ATTACK_TARGET = 100
 
