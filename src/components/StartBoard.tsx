@@ -4,7 +4,6 @@ import { useAuthStore } from '../store/authStore'
 import { useMultiStore } from '../store/multiStore'
 import { useThemeStore } from '../store/themeStore'
 import { BOARD_BG, C, G } from '../theme/tokens'
-import { formatTime } from '../utils/gameLogic'
 import { AuthModal } from './AuthModal'
 
 const BOARD_HEIGHT = 538
@@ -12,7 +11,7 @@ const BOARD_HEIGHT = 538
 type MultiAfterLogin = 'create' | 'join' | null
 
 export function StartBoard() {
-  const { personalBest, personalBestTime, startScoreAttack, startTimeAttack } = useGameStore()
+  const { startScoreAttack, startTimeAttack } = useGameStore()
   const theme = useThemeStore(s => s.theme)
   const { user, pendingAuth, setPendingAuth } = useAuthStore()
   const { createRoom, joinRoom, error: multiError, clearError } = useMultiStore()
@@ -92,42 +91,10 @@ export function StartBoard() {
       >
         {/* 상단: 타이틀 + 설명 */}
         <div className="text-center w-full max-w-lg">
-          <div className="text-5xl mb-5">🍎</div>
+          <div className="text-5xl mb-4">🍎</div>
           <h2 className={`text-3xl font-black mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AppleBox</h2>
           <p className="text-gray-400">드래그로 합이 10이 되는 숫자들을 선택하세요</p>
         </div>
-
-        {/* 중간: 최고 기록 카드 */}
-        {(personalBest > 0 || personalBestTime > 0) && (
-          <div className="flex gap-3 w-full max-w-lg">
-            {personalBest > 0 && (
-              <div
-                className="flex-1 rounded-2xl p-4 text-center relative overflow-hidden"
-                style={{ background: C.surfaceRaised }}
-              >
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #FFD700, #FF8C00)' }} />
-                <div className="text-lg mb-1">⏱️</div>
-                <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: C.textMuted }}>스코어 어택</div>
-                <div className="text-3xl font-black" style={{ color: C.accentYellow }}>
-                  {personalBest}<span className="text-sm font-semibold ml-1" style={{ color: C.textMuted }}>점</span>
-                </div>
-              </div>
-            )}
-            {personalBestTime > 0 && (
-              <div
-                className="flex-1 rounded-2xl p-4 text-center relative overflow-hidden"
-                style={{ background: C.surfaceRaised }}
-              >
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg, #FFD700, #FF8C00)' }} />
-                <div className="text-lg mb-1">🎯</div>
-                <div className="text-xs font-semibold tracking-widest uppercase mb-2" style={{ color: C.textMuted }}>타임 어택</div>
-                <div className="text-3xl font-black" style={{ color: C.accentYellow }}>
-                  {formatTime(personalBestTime)}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* 하단: 버튼 영역 */}
         <div className="flex flex-col gap-3 w-full max-w-lg">
