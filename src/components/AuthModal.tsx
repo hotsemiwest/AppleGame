@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { useAuthStore } from '../store/authStore'
 import { checkDisplayNameTaken } from '../lib/supabase'
 import { C } from '../theme/tokens'
+import { SegmentedControl } from './SegmentedControl'
 
 interface Props {
   onSuccess: () => void
@@ -112,20 +113,15 @@ export function AuthModal({ onSuccess, onClose, onSignupDone, initialTab = 'logi
         ) : (
           <>
             {/* 탭 */}
-            <div className="flex rounded-xl overflow-hidden mb-5" style={{ background: C.surface }}>
-              {(['login', 'signup'] as Tab[]).map(t => (
-                <button
-                  key={t}
-                  onClick={() => switchTab(t)}
-                  className={`flex-1 py-2.5 text-sm font-bold transition-all ${
-                    tab === t
-                      ? 'bg-gradient-to-r from-green-500 to-emerald-600 text-white'
-                      : 'text-gray-400'
-                  }`}
-                >
-                  {t === 'login' ? '로그인' : '회원가입'}
-                </button>
-              ))}
+            <div className="mb-5">
+              <SegmentedControl
+                options={[
+                  { value: 'login', label: '로그인' },
+                  { value: 'signup', label: '회원가입' },
+                ]}
+                value={tab}
+                onChange={switchTab}
+              />
             </div>
 
             {/* 안내 배너 */}
