@@ -18,7 +18,7 @@ export const DIFFICULTY_CONFIG = {
     2: { min: 800, max: 819,  label: '800~819' },
     3: { min: 820, max: 839,  label: '820~839' },
     4: { min: 840, max: 859,  label: '840~859' },
-    5: { min: 860, max: 99999, label: '860+' },
+    5: { min: 860, max: 99999, label: '860~' },
   } as const,
 } as const
 
