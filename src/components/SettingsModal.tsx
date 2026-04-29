@@ -353,7 +353,7 @@ export function SettingsModal({ onClose }: Props) {
                       className="themed-slider w-full"
                       style={{ '--slider-pct': ((soloBoardDifficulty - DIFFICULTY_CONFIG.MIN) / (DIFFICULTY_CONFIG.MAX - DIFFICULTY_CONFIG.MIN)) * 100 } as React.CSSProperties}
                     />
-                    <div className="mt-1 flex justify-between text-[11px]" style={{ color: C.textMuted }}>
+                    <div className="mt-1 flex justify-between text-[11px] px-2" style={{ color: C.textMuted }}>
                       <span>1</span>
                       <span>2</span>
                       <span>3</span>
