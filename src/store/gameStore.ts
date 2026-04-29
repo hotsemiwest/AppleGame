@@ -170,7 +170,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       targetDifficulty,
       metric: 'board sum',
       boardSum,
-      thresholds: ['<800 => 0', '800~819 => 1', '820~839 => 2', '840~859 => 3', '860~879 => 4', '880+ => 5'],
+      thresholds: ['<800 : 1', '800~819 : 2', '820~839 : 3', '840~859 : 4', '860<= : 5'],
       matchedRange: getBoardDifficultyRange(boardDifficulty),
       difficulty: boardDifficulty,
     })
