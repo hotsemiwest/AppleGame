@@ -319,7 +319,7 @@ export function SettingsModal({ onClose }: Props) {
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">싱글 게임 난이도</div>
-                  <div className="text-sm font-bold" style={{ color: C.orange }}>{difficultyLabel}</div>
+                  <div className="text-sm font-semibold" style={{ color: C.textPrimary }}>{difficultyLabel}</div>
                 </div>
                 
                 {/* 랜덤 vs 난이도 선택 토글 */}
@@ -353,12 +353,10 @@ export function SettingsModal({ onClose }: Props) {
                       className="themed-slider w-full"
                       style={{ '--slider-pct': ((soloBoardDifficulty - DIFFICULTY_CONFIG.MIN) / (DIFFICULTY_CONFIG.MAX - DIFFICULTY_CONFIG.MIN)) * 100 } as React.CSSProperties}
                     />
-                    <div className="mt-1 flex justify-between text-[11px] px-2" style={{ color: C.textMuted }}>
-                      <span>1</span>
-                      <span>2</span>
-                      <span>3</span>
-                      <span>4</span>
-                      <span>5</span>
+                    <div className="mt-1 flex justify-between text-[11px]" style={{ color: C.textMuted, fontVariantNumeric: 'tabular-nums', paddingLeft: '6px', paddingRight: '6px' }}>
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <span key={n}>{n}</span>
+                      ))}
                     </div>
                   </>
                 )}

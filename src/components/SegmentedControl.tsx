@@ -35,7 +35,7 @@ export function SegmentedControl<T extends string>({
         <button
           key={opt.value}
           onClick={() => onChange(opt.value)}
-          className="relative flex-1 py-2 text-sm font-bold z-10"
+          className="relative flex-1 py-2 text-sm font-semibold z-10"
           style={{
             color: opt.value === value ? C.textPrimary : C.textMuted,
             transition: 'color 0.18s ease',
