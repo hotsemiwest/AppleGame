@@ -1,4 +1,44 @@
 import { Board, ROWS, COLS } from '../types/game'
+import { DIFFICULTY_CONFIG, getDifficultyRange, calculateBoardDifficulty } from '../config/difficultyConfig'
+
+export function sumBoard(board: Board): number {
+  let total = 0
+  for (const row of board) {
+    for (const cell of row) {
+      if (cell !== null) total += cell
+    }
+  }
+  return total
+}
+
+export function getBoardDifficulty(board: Board): number {
+  const sum = sumBoard(board)
+  return calculateBoardDifficulty(sum)
+}
+
+export function getBoardDifficultyRange(difficulty: number): string {
+  return getDifficultyRange(difficulty).label
+}
+
+function getTargetSumRange(difficulty: number): [number, number] {
+  const range = getDifficultyRange(difficulty)
+  return [range.min, range.max]
+}
+
+export function generateBoardForDifficulty(targetDifficulty: number): Board {
+  if (targetDifficulty === -1) return generateBoard() // Random difficulty
+
+  const [minSum, maxSum] = getTargetSumRange(targetDifficulty)
+
+  // Keep generating until we get a board in the target range
+  while (true) {
+    const board = generateBoard()
+    const sum = sumBoard(board)
+    if (sum >= minSum && sum <= maxSum) {
+      return board
+    }
+  }
+}
 
 export function generateBoardWithSize(rows: number, cols: number): Board {
   while (true) {

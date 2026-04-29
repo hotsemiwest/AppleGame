@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useThemeStore } from '../store/themeStore'
+import { DIFFICULTY_CONFIG, getDifficultyLabel } from '../config/difficultyConfig'
 import { TILE_COLORS, BOARD_BG, C } from '../theme/tokens'
 import { Tile } from './Tile'
 import { SegmentedControl } from './SegmentedControl'
@@ -12,7 +13,7 @@ import { buildParticles } from '../store/gameStore'
 import { generateBoardWithSize } from '../utils/boardGenerator'
 
 const PREVIEW_COLS = 6
-const PREVIEW_ROWS = 9
+const PREVIEW_ROWS = 10
 const TILE_S = 52
 const GAP_S = 2
 const CELL_S = TILE_S + GAP_S
@@ -31,16 +32,21 @@ export function SettingsModal({ onClose }: Props) {
     tileShape,
     tileColorId,
     showHintCount,
+    showDifficulty,
+    soloBoardDifficulty,
     showDragSelectionSum,
     showDragSelectionRangeColor,
     setTheme,
     setTileShape,
     setTileColor,
     setShowHintCount,
+    setShowDifficulty,
+    setSoloBoardDifficulty,
     setShowDragSelectionSum,
     setShowDragSelectionRangeColor,
   } = useThemeStore()
 
+  const [settingsTab, setSettingsTab] = useState<'decor' | 'feature'>('decor')
   const [previewBoard, setPreviewBoard] = useState<Board>(generatePreviewBoard)
   const [previewParticles, setPreviewParticles] = useState<Particle[]>([])
   const previewRef = useRef<HTMLDivElement>(null)
@@ -91,6 +97,8 @@ export function SettingsModal({ onClose }: Props) {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
+
+  const difficultyLabel = getDifficultyLabel(soloBoardDifficulty)
 
   return createPortal(
     <div
@@ -198,91 +206,164 @@ export function SettingsModal({ onClose }: Props) {
 
           {/* 설정 */}
           <div className="flex-1 flex flex-col gap-5">
-            {/* 테마 */}
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">테마</div>
-              <SegmentedControl
-                options={[
-                  { value: 'light', label: '☀️ 라이트' },
-                  { value: 'dark',  label: '🌙 다크' }
-                ]}
-                value={theme}
-                onChange={setTheme}
-              />
-            </div>
+            {/* 탭 스위치 */}
+            <SegmentedControl
+              options={[
+                { value: 'decor',   label: '🎨 꾸미기' },
+                { value: 'feature', label: '⚙️ 기능' },
+              ]}
+              value={settingsTab}
+              onChange={v => setSettingsTab(v as 'decor' | 'feature')}
+            />
+            <div className={`flex-1 border-t ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`} />
+            {settingsTab === 'decor' && <>
+              {/* 테마 */}
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">테마</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'light', label: '☀️ 라이트' },
+                    { value: 'dark',  label: '🌙 다크' }
+                  ]}
+                  value={theme}
+                  onChange={setTheme}
+                />
+              </div>
 
-            {/* 타일 모양 */}
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">타일 모양</div>
-              <SegmentedControl
-                options={[
-                  { value: 'apple',  label: '🍎 사과' },
-                  { value: 'circle', label: '🔴 원형' },
-                  { value: 'square', label: '🟥 사각형' },
-                  { value: '8bit',   label: '🛑 8BIT' },
-                ]}
-                value={tileShape}
-                onChange={setTileShape}
-              />
-            </div>
+              {/* 타일 모양 */}
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">타일 모양</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'apple',  label: '🍎 사과' },
+                    { value: 'circle', label: '🔴 원형' },
+                    { value: 'square', label: '🟥 사각형' },
+                    { value: '8bit',   label: '🛑 8BIT' },
+                  ]}
+                  value={tileShape}
+                  onChange={setTileShape}
+                />
+              </div>
 
-            {/* 타일 색상 */}
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">타일 색상</div>
-              <div className="flex gap-2">
-                {TILE_COLORS.map(color => (
-                  <button
-                    key={color.id}
-                    onClick={() => setTileColor(color.id)}
-                    title={color.label}
-                    className="flex-1 aspect-square rounded-xl transition-all active:scale-90"
-                    style={{
-                      background: color.fill,
-                      outline: tileColorId === color.id ? `2px solid ${color.fill}` : 'none',
-                      outlineOffset: 2,
-                      height: 40,
+              {/* 타일 색상 */}
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">타일 색상</div>
+                <div className="flex gap-2">
+                  {TILE_COLORS.map(color => (
+                    <button
+                      key={color.id}
+                      onClick={() => setTileColor(color.id)}
+                      title={color.label}
+                      className="flex-1 aspect-square rounded-xl transition-all active:scale-90"
+                      style={{
+                        background: color.fill,
+                        outline: tileColorId === color.id ? `2px solid ${color.fill}` : 'none',
+                        outlineOffset: 2,
+                        height: 40,
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>}
+
+            {settingsTab === 'feature' && <>
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 선택 합계 표시</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on',  label: '✅ 켜기' },
+                    { value: 'off', label: '❌ 끄기' },
+                  ]}
+                  value={showDragSelectionSum ? 'on' : 'off'}
+                  onChange={v => setShowDragSelectionSum(v === 'on')}
+                />
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 범위별 박스 색상</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on',  label: '✅ 켜기' },
+                    { value: 'off', label: '❌ 끄기' },
+                  ]}
+                  value={showDragSelectionRangeColor ? 'on' : 'off'}
+                  onChange={v => setShowDragSelectionRangeColor(v === 'on')}
+                />
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">게임 중 조합 수 표시</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on',  label: '✅ 켜기' },
+                    { value: 'off', label: '❌ 끄기' },
+                  ]}
+                  value={showHintCount ? 'on' : 'off'}
+                  onChange={v => setShowHintCount(v === 'on')}
+                />
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">게임 중 난이도 표시</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on',  label: '✅ 켜기' },
+                    { value: 'off', label: '❌ 끄기' },
+                  ]}
+                  value={showDifficulty ? 'on' : 'off'}
+                  onChange={v => setShowDifficulty(v === 'on')}
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">싱글 게임 난이도</div>
+                  <div className="text-sm font-bold" style={{ color: C.orange }}>{difficultyLabel}</div>
+                </div>
+                
+                {/* 랜덤 vs 난이도 선택 토글 */}
+                <div className="mb-3">
+                  <SegmentedControl
+                    options={[
+                      { value: 'random' as const, label: '🎲 랜덤' },
+                      { value: 'fixed' as const, label: '⭐️ 직접 설정' }
+                    ]}
+                    value={soloBoardDifficulty === DIFFICULTY_CONFIG.RANDOM ? 'random' : 'fixed'}
+                    onChange={(v) => {
+                      if (v === 'random') {
+                        setSoloBoardDifficulty(DIFFICULTY_CONFIG.RANDOM)
+                      } else {
+                        setSoloBoardDifficulty(DIFFICULTY_CONFIG.DEFAULT)
+                      }
                     }}
                   />
-                ))}
+                </div>
+
+                {/* 난이도 슬라이더 */}
+                {soloBoardDifficulty !== DIFFICULTY_CONFIG.RANDOM && (
+                  <>
+                    <input
+                      type="range"
+                      min={DIFFICULTY_CONFIG.MIN}
+                      max={DIFFICULTY_CONFIG.MAX}
+                      step={1}
+                      value={soloBoardDifficulty}
+                      onChange={e => setSoloBoardDifficulty(Number(e.target.value))}
+                      className="themed-slider w-full"
+                      style={{ '--slider-pct': ((soloBoardDifficulty - DIFFICULTY_CONFIG.MIN) / (DIFFICULTY_CONFIG.MAX - DIFFICULTY_CONFIG.MIN)) * 100 } as React.CSSProperties}
+                    />
+                    <div className="mt-1 flex justify-between text-[11px]" style={{ color: C.textMuted }}>
+                      <span>1</span>
+                      <span>2</span>
+                      <span>3</span>
+                      <span>4</span>
+                      <span>5</span>
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 선택 합계 표시</div>
-              <SegmentedControl
-                options={[
-                  { value: 'on',  label: '✅ 켜기' },
-                  { value: 'off', label: '❌ 끄기' },
-                ]}
-                value={showDragSelectionSum ? 'on' : 'off'}
-                onChange={v => setShowDragSelectionSum(v === 'on')}
-              />
-            </div>
-
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 범위별 박스 색상</div>
-              <SegmentedControl
-                options={[
-                  { value: 'on',  label: '✅ 켜기' },
-                  { value: 'off', label: '❌ 끄기' },
-                ]}
-                value={showDragSelectionRangeColor ? 'on' : 'off'}
-                onChange={v => setShowDragSelectionRangeColor(v === 'on')}
-              />
-            </div>
-
-            {/* 조합 수 표시 */}
-            <div>
-              <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">게임 중 조합 수 표시</div>
-              <SegmentedControl
-                options={[
-                  { value: 'on',  label: '✅ 켜기' },
-                  { value: 'off', label: '❌ 끄기' },
-                ]}
-                value={showHintCount ? 'on' : 'off'}
-                onChange={v => setShowHintCount(v === 'on')}
-              />
-            </div>
+            </>}
           </div>
 
         </div>

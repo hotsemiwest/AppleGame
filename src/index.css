@@ -175,6 +175,64 @@ body.theme-light {
   animation: scorePop 0.2s ease-out;
 }
 
+/* Themed range slider */
+input[type="range"].themed-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  background: linear-gradient(
+    to right,
+    #f97316 0%,
+    #f97316 calc(var(--slider-pct, 0%) * 1%),
+    var(--c-border-mid) calc(var(--slider-pct, 0%) * 1%),
+    var(--c-border-mid) 100%
+  );
+}
+
+input[type="range"].themed-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f97316;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+input[type="range"].themed-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 3px 10px rgba(249,115,22,0.5);
+}
+
+input[type="range"].themed-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #f97316;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+  transition: transform 0.1s ease;
+}
+
+input[type="range"].themed-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: #f97316;
+}
+
+input[type="range"].themed-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--c-border-mid);
+}
+
 /* Board scaling for smaller screens */
 @media (max-width: 980px) {
   .board-scaler {

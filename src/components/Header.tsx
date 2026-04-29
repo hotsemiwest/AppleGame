@@ -11,12 +11,14 @@ import { ProfileModal } from './ProfileModal'
 import { SettingsButton } from './SettingsButton'
 import { C, G } from '../theme/tokens'
 import { SegmentedControl } from './SegmentedControl'
+import { getDifficultyStarCount } from '../config/difficultyConfig'
 
 export function Header() {
-  const { score, personalBest, personalBestTime, timeLeft, elapsedTime, gameMode, gamePhase, startGame, goHome, board } = useGameStore()
+  const { score, personalBest, personalBestTime, timeLeft, elapsedTime, gameMode, gamePhase, startGame, goHome, board, boardDifficulty } = useGameStore()
   const { user, displayName, signOut, setPendingAuth } = useAuthStore()
   const theme = useThemeStore(s => s.theme)
   const showHintCount = useThemeStore(s => s.showHintCount)
+  const showDifficulty = useThemeStore(s => s.showDifficulty)
 
   const solutionCount = useMemo(() => {
     if (!showHintCount || gamePhase !== 'playing') return 0
@@ -35,6 +37,7 @@ export function Header() {
 
   const isStart = gamePhase === 'start'
   const isUrgent = timeLeft <= 30 && gamePhase === 'playing'
+  const difficultyStars = getDifficultyStarCount(boardDifficulty ?? 0)
 
   return (
     <>
@@ -72,11 +75,21 @@ export function Header() {
                     </div>
                   </>
                 )}
-                {showHintCount && gamePhase === 'playing' && (
-                  <div className="text-center">
-                    <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">조합 수</div>
-                    <div className="text-3xl font-bold" style={{ color: C.blue }}>{solutionCount}</div>
-                  </div>
+                {gamePhase === 'playing' && (showHintCount || showDifficulty) && (
+                  <>
+                    {showHintCount && (
+                      <div className="text-center">
+                        <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">조합 수</div>
+                        <div className="text-3xl font-bold" style={{ color: C.blue }}>{solutionCount}</div>
+                      </div>
+                    )}
+                    {showDifficulty && (
+                      <div className="text-center">
+                        <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">난이도</div>
+                        <div className="text-3xl font-bold tracking-tight" style={{ color: C.orange }}>{difficultyStars}</div>
+                      </div>
+                    )}
+                  </>
                 )}
               </>
             ) : (personalBest > 0 || personalBestTime > 0) ? (

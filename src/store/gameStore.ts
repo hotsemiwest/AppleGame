@@ -4,8 +4,9 @@ import {
   SelectionRect, CellRef, GAME_DURATION, TIME_ATTACK_TARGET,
 } from '../types/game'
 import { PARTICLE_COLORS } from '../theme/tokens'
-import { generateBoard } from '../utils/boardGenerator'
+import { generateBoardForDifficulty, getBoardDifficulty, getBoardDifficultyRange, sumBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect } from '../utils/gameLogic'
+import { useThemeStore } from './themeStore'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
 const TIME_ATTACK_BEST_KEY = 'timeAttackBest'
@@ -111,6 +112,7 @@ interface GameState {
   timeLeft: number
   elapsedTime: number  // seconds, counts up in time attack
   gameStartedAt: number  // Date.now() when playing began
+  boardDifficulty: number | null
   particles: Particle[]
   scorePopups: ScorePopup[]
   isNewRecord: boolean
@@ -141,6 +143,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   timeLeft: GAME_DURATION,
   elapsedTime: 0,
   gameStartedAt: 0,
+  boardDifficulty: null,
   particles: [],
   scorePopups: [],
   isNewRecord: false,
@@ -158,12 +161,26 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   beginPlaying: () => {
+    const targetDifficulty = useThemeStore.getState().soloBoardDifficulty
+    const board = generateBoardForDifficulty(targetDifficulty)
+    const boardSum = sumBoard(board)
+    const boardDifficulty = getBoardDifficulty(board)
+    console.log('[Game Start] Board sum:', boardSum)
+    console.log('[Game Start] Difficulty calculation:', {
+      targetDifficulty,
+      metric: 'board sum',
+      boardSum,
+      thresholds: ['<800 => 0', '800~819 => 1', '820~839 => 2', '840~859 => 3', '860~879 => 4', '880+ => 5'],
+      matchedRange: getBoardDifficultyRange(boardDifficulty),
+      difficulty: boardDifficulty,
+    })
     set({
-      board: generateBoard(),
+      board,
       score: 0,
       timeLeft: GAME_DURATION,
       elapsedTime: 0,
       gameStartedAt: Date.now(),
+      boardDifficulty,
       particles: [],
       scorePopups: [],
       gamePhase: 'playing',
@@ -185,7 +202,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   goHome: () => {
-    set({ gamePhase: 'start', particles: [], scorePopups: [] })
+    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [] })
   },
 
   endGame: () => {

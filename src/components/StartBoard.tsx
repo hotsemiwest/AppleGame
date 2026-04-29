@@ -117,9 +117,9 @@ export function StartBoard() {
 
           {/* 구분선 */}
           <div className="flex items-center gap-3 my-1">
-            <div className={`flex-1 border-t ${theme === 'light' ? 'border-gray-300' : 'border-gray-600'}`} />
+            <div className={`flex-1 border-t ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`} />
             <span className="text-gray-500 text-sm whitespace-nowrap">또는 다른 사람과 함께</span>
-            <div className={`flex-1 border-t ${theme === 'light' ? 'border-gray-300' : 'border-gray-600'}`} />
+            <div className={`flex-1 border-t ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`} />
           </div>
 
           {/* 방 만들기 */}
