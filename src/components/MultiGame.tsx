@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useMultiStore } from '../store/multiStore'
 import { MultiGameBoard } from './MultiGameBoard'
 import { C, G } from '../theme/tokens'
-import { TIME_ATTACK_TARGET } from '../types/game'
+import { MULTI_TIME_ATTACK_TARGET } from '../types/game'
 
 function formatTime(seconds: number): string {
   const m = Math.floor(seconds / 60)
@@ -59,7 +59,7 @@ export function MultiGame() {
           </div>
           {gameMode === 'time' ? (
             <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>
-              {hostScore}<span className="text-base font-semibold text-gray-400">/{TIME_ATTACK_TARGET}</span>
+              {hostScore}<span className="text-base font-semibold text-gray-400">/{MULTI_TIME_ATTACK_TARGET}</span>
             </div>
           ) : (
             <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>{hostScore}</div>
@@ -86,7 +86,7 @@ export function MultiGame() {
           </div>
           {gameMode === 'time' ? (
             <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>
-              {guestScore}<span className="text-base font-semibold text-gray-400">/{TIME_ATTACK_TARGET}</span>
+              {guestScore}<span className="text-base font-semibold text-gray-400">/{MULTI_TIME_ATTACK_TARGET}</span>
             </div>
           ) : (
             <div className="text-3xl font-bold" style={{ color: C.textPrimary }}>{guestScore}</div>
@@ -101,14 +101,14 @@ export function MultiGame() {
             <div
               className="h-full rounded-l-full transition-all duration-300"
               style={{
-                width: `${Math.min((hostScore / TIME_ATTACK_TARGET) * 50, 50)}%`,
+                width: `${Math.min((hostScore / MULTI_TIME_ATTACK_TARGET) * 50, 50)}%`,
                 background: G.multiTimer,
               }}
             />
             <div
               className="h-full rounded-r-full transition-all duration-300 ml-auto"
               style={{
-                width: `${Math.min((guestScore / TIME_ATTACK_TARGET) * 50, 50)}%`,
+                width: `${Math.min((guestScore / MULTI_TIME_ATTACK_TARGET) * 50, 50)}%`,
                 background: G.timerUrgent,
               }}
             />

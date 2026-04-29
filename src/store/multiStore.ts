@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { Board, SelectionRect, GameMode, GAME_DURATION, TIME_ATTACK_TARGET } from '../types/game'
+import { Board, SelectionRect, GameMode, GAME_DURATION, MULTI_TIME_ATTACK_TARGET } from '../types/game'
 import { generateBoard, getBoardDifficulty, getBoardDifficultyRange, sumBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { supabase, createMultiRoom, joinMultiRoom, startMultiGame, endMultiRoom } from '../lib/supabase'
@@ -103,7 +103,7 @@ function subscribeChannel(roomCode: string) {
         useGameStore.getState().spawnOpponentParticles(payload.cleared_cells)
       }
 
-      if (s.gameMode === 'time' && opponentScore >= TIME_ATTACK_TARGET) {
+      if (s.gameMode === 'time' && opponentScore >= MULTI_TIME_ATTACK_TARGET) {
         endGame('opponent')
         return
       }
@@ -363,7 +363,7 @@ export const useMultiStore = create<MultiState>((set, get) => ({
       payload: { board: newBoard, host_score: hostScore, guest_score: guestScore, cleared_cells: cleared },
     })
 
-    if (s.gameMode === 'time' && myScore >= TIME_ATTACK_TARGET) {
+    if (s.gameMode === 'time' && myScore >= MULTI_TIME_ATTACK_TARGET) {
       endGame('me')
       return
     }
