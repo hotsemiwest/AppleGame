@@ -1,5 +1,5 @@
 import { Board, ROWS, COLS } from '../types/game'
-import { DIFFICULTY_CONFIG, getDifficultyRange, calculateBoardDifficulty } from '../config/difficultyConfig'
+import { getDifficultyRange, calculateBoardDifficulty } from '../config/difficultyConfig'
 
 export function sumBoard(board: Board): number {
   let total = 0
