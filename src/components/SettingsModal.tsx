@@ -36,6 +36,7 @@ export function SettingsModal({ onClose }: Props) {
     soloBoardDifficulty,
     showDragSelectionSum,
     showDragSelectionRangeColor,
+    devMode,
     setTheme,
     setTileShape,
     setTileColor,
@@ -44,6 +45,7 @@ export function SettingsModal({ onClose }: Props) {
     setSoloBoardDifficulty,
     setShowDragSelectionSum,
     setShowDragSelectionRangeColor,
+    setDevMode,
   } = useThemeStore()
 
   const [settingsTab, setSettingsTab] = useState<'decor' | 'feature'>('decor')
@@ -360,6 +362,21 @@ export function SettingsModal({ onClose }: Props) {
                     </div>
                   </>
                 )}
+              </div>
+
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">개발자 모드</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on',  label: '✅ 켜기' },
+                    { value: 'off', label: '❌ 끄기' },
+                  ]}
+                  value={devMode ? 'on' : 'off'}
+                  onChange={v => setDevMode(v === 'on')}
+                />
+                <div className="mt-1.5 text-[11px]" style={{ color: C.textMuted }}>
+                  보드 내보내기 등 개발/디버그 기능을 활성화합니다.
+                </div>
               </div>
             </>}
           </div>
