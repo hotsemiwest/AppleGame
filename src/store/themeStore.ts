@@ -14,6 +14,7 @@ interface ThemeState {
   soloBoardDifficulty: number
   showDragSelectionSum: boolean
   showDragSelectionRangeColor: boolean
+  devMode: boolean
   setTheme: (t: Theme) => void
   setTileShape: (s: TileShape) => void
   setTileColor: (id: TileColorId) => void
@@ -22,11 +23,12 @@ interface ThemeState {
   setSoloBoardDifficulty: (v: number) => void
   setShowDragSelectionSum: (v: boolean) => void
   setShowDragSelectionRangeColor: (v: boolean) => void
+  setDevMode: (v: boolean) => void
 }
 
 const KEY = 'applebox_theme'
 
-type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDifficulty' | 'soloBoardDifficulty' | 'showDragSelectionSum' | 'showDragSelectionRangeColor'>
+type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDifficulty' | 'soloBoardDifficulty' | 'showDragSelectionSum' | 'showDragSelectionRangeColor' | 'devMode'>
 
 const THEMES: Theme[] = ['light', 'dark']
 const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square', '8bit']
@@ -44,6 +46,7 @@ function load(): Partial<Saved> {
       soloBoardDifficulty: isValidDifficulty(saved.soloBoardDifficulty) ? saved.soloBoardDifficulty : DIFFICULTY_CONFIG.DEFAULT,
       showDragSelectionSum: typeof saved.showDragSelectionSum === 'boolean' ? saved.showDragSelectionSum : true,
       showDragSelectionRangeColor: typeof saved.showDragSelectionRangeColor === 'boolean' ? saved.showDragSelectionRangeColor : true,
+      devMode: typeof saved.devMode === 'boolean' ? saved.devMode : false,
     }
   } catch {
     return {}
@@ -63,6 +66,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   soloBoardDifficulty: DIFFICULTY_CONFIG.DEFAULT,
   showDragSelectionSum: true,
   showDragSelectionRangeColor: true,
+  devMode: false,
   ...load(),
 
   setTheme:                       (theme)                        => { set({ theme });                        save({ theme }) },
@@ -73,4 +77,5 @@ export const useThemeStore = create<ThemeState>((set) => ({
   setSoloBoardDifficulty:         (soloBoardDifficulty)          => { set({ soloBoardDifficulty });          save({ soloBoardDifficulty }) },
   setShowDragSelectionSum:        (showDragSelectionSum)         => { set({ showDragSelectionSum });         save({ showDragSelectionSum }) },
   setShowDragSelectionRangeColor: (showDragSelectionRangeColor)  => { set({ showDragSelectionRangeColor });  save({ showDragSelectionRangeColor }) },
+  setDevMode:                     (devMode)                      => { set({ devMode });                      save({ devMode }) },
 }))

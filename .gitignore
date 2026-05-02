@@ -3,3 +3,16 @@ dist
 .vercel
 .claude
 *.local
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.venv/
+venv/
+
+# RL solver artifacts
+ai_solver/runs/
+ai_solver/models/
+ai_solver/*.zip
