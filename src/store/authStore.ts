@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
 import { supabase, updateDisplayName as apiUpdateDisplayName } from '../lib/supabase'
 import { setPersonalBestPersistence, useGameStore } from './gameStore'
+import { useThemeStore } from './themeStore'
 
 async function restorePersonalBest(userId: string) {
   const { data } = await supabase
@@ -97,6 +98,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut()
     useGameStore.getState().resetPersonalBest()
+    useThemeStore.getState().setDevMode(false)
   },
 
   updateDisplayName: async (newName: string) => {

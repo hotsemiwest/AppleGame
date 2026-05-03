@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useThemeStore } from '../store/themeStore'
+import { useAuthStore } from '../store/authStore'
 import { countSolutions } from '../utils/gameLogic'
 import { C } from '../theme/tokens'
 
@@ -23,6 +24,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 export function DevSidePanel() {
   const devMode = useThemeStore(s => s.devMode)
+  const user = useAuthStore(s => s.user)
   const gamePhase = useGameStore(s => s.gamePhase)
   const board = useGameStore(s => s.board)
   const score = useGameStore(s => s.score)
@@ -97,7 +99,7 @@ export function DevSidePanel() {
     }
   }, [modelPath, runAISolver])
 
-  if (!devMode) return null
+  if (!devMode || !user) return null
 
   return (
     <div
