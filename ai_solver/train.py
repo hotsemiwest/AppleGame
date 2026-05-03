@@ -15,7 +15,7 @@ import torch
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from sb3_contrib.common.wrappers import ActionMasker
-from stable_baselines3.common.callbacks import CheckpointCallback
+from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from .fruit_box_env import FruitBoxEnv, RewardConfig
@@ -27,6 +27,31 @@ def _auto_device() -> str:
     if torch.backends.mps.is_available():
         return "mps"
     return "cpu"
+
+class GameScoreCallback(BaseCallback):
+    """Records actual game score (cells cleared) and remaining cells to TensorBoard per rollout."""
+
+    def __init__(self):
+        super().__init__()
+        self._scores: list[int] = []
+        self._remaining: list[int] = []
+
+    def _on_step(self) -> bool:
+        for done, info in zip(self.locals["dones"], self.locals["infos"]):
+            if done:
+                self._scores.append(info.get("score", 0))
+                self._remaining.append(info.get("remaining", 0))
+        return True
+
+    def _on_rollout_end(self) -> None:
+        if not self._scores:
+            return
+        self.logger.record("game/score_mean", float(np.mean(self._scores)))
+        self.logger.record("game/score_max", float(np.max(self._scores)))
+        self.logger.record("game/remaining_mean", float(np.mean(self._remaining)))
+        self._scores.clear()
+        self._remaining.clear()
+
 
 ROOT = Path(__file__).resolve().parent
 RUNS_DIR = ROOT / "runs"
@@ -64,10 +89,11 @@ def main():
     parser.add_argument("--device", type=str, default="auto",
                         help="Device: auto | cpu | cuda | cuda:0 | mps")
     # reward shaping
-    parser.add_argument("--leftover-penalty", type=float, default=3.0)
-    parser.add_argument("--nine-bonus",        type=float, default=0.5)
-    parser.add_argument("--eight-bonus",       type=float, default=0.3)
-    parser.add_argument("--pair-bonus",        type=float, default=0.5)
+    parser.add_argument("--leftover-penalty", type=float, default=1.0)
+    parser.add_argument("--nine-bonus",        type=float, default=0.0)
+    parser.add_argument("--eight-bonus",       type=float, default=0.0)
+    parser.add_argument("--pair-bonus",        type=float, default=0.0)
+    parser.add_argument("--all-clear-bonus",   type=float, default=20.0)
     args = parser.parse_args()
 
     device = _auto_device() if args.device == "auto" else args.device
@@ -78,6 +104,7 @@ def main():
         eight_bonus=args.eight_bonus,
         pair_bonus=args.pair_bonus,
         leftover_penalty=args.leftover_penalty,
+        all_clear_bonus=args.all_clear_bonus,
     )
 
     run_name = f"{args.tag}_{int(time.time())}"
@@ -127,9 +154,11 @@ def main():
         n_eval_episodes=20,
     )
 
+    score_cb = GameScoreCallback()
+
     model.learn(
         total_timesteps=args.timesteps,
-        callback=[checkpoint_cb, eval_cb],
+        callback=[checkpoint_cb, eval_cb, score_cb],
         tb_log_name=run_name,
         progress_bar=True,
     )

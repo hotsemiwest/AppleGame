@@ -55,7 +55,7 @@ def test_clear_zeros_cells():
 
 
 def test_reward_equals_cells_cleared_default_config():
-    env = FruitBoxEnv(reward_config=RewardConfig(all_clear_bonus=0.0))
+    env = FruitBoxEnv(reward_config=RewardConfig(all_clear_bonus=0.0, leftover_penalty=0.0))
     env.reset(seed=11)
     total_reward = 0.0
     cells_cleared = 0

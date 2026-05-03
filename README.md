@@ -136,6 +136,35 @@ npm run preview
 - **Combo**: 4개 이상의 셀 선택
 - **Big**: 특별한 성과에 대한 특수 이펙트
 
+## 🤖 AI 솔버
+
+강화학습(MaskablePPO) 기반 AI 에이전트가 게임을 자동으로 플레이합니다.
+
+### AI 데모 서버 실행
+
+```bash
+# 프로젝트 루트에서 실행
+
+# 환경변수로 모델 지정
+AI_MODEL_PATH=ai_solver/models/<run>/best/best_model.zip \
+  .venv/bin/uvicorn ai_solver.server:app --reload --port 8000
+
+# Swagger API 문서: http://localhost:8000/docs
+```
+
+### 학습
+
+```bash
+# 정식 훈련 (5M steps)
+.venv/bin/python -m ai_solver.train --tag reward_v2
+
+# TensorBoard 모니터링 (별도 터미널)
+.venv/bin/tensorboard --logdir ai_solver/runs --port 6006
+# → http://localhost:6006
+```
+
+> 자세한 내용은 [ai_solver/README.md](ai_solver/README.md) 참고
+
 ## 🔧 설정 파일
 
 - `vite.config.ts`: Vite 빌드 설정

@@ -41,22 +41,55 @@ ai_solver/.venv/bin/pip install -r ai_solver/requirements.txt
 pytest ai_solver/tests
 ```
 
-## Train
+## AI 데모 서버
+
+React 프론트엔드의 **AI 데모** 기능에 이동 시퀀스를 제공하는 FastAPI 서버입니다.
 
 ```bash
 # 프로젝트 루트에서 실행
-cd "/Users/shinjoonseo/Mr.Everything/self-project/apple game"
 
-# Smoke test (~1 min on CPU): 학습 곡선 상승 확인용
-ai_solver/.venv/bin/python -m ai_solver.train --timesteps 50_000 --tag smoke
+# 방법 1: 환경변수로 모델 지정
+AI_MODEL_PATH=ai_solver/models/<run>/best/best_model.zip \
+  .venv/bin/uvicorn ai_solver.server:app --reload --port 8000
 
-# 정식 훈련 (기본값: 5M steps, strategic 보상 체계)
-ai_solver/.venv/bin/python -m ai_solver.train --tag strategic_v1
-
-# TensorBoard 모니터링 (별도 터미널에서 실행)
-ai_solver/.venv/bin/tensorboard --logdir ai_solver/runs
-# → 브라우저에서 http://localhost:6006 접속
+# 방법 2: 모델 미지정 (요청마다 model_path 포함)
+.venv/bin/uvicorn ai_solver.server:app --reload --port 8000
 ```
+
+서버 실행 후 `http://localhost:8000/docs` 에서 Swagger UI로 API 확인 가능.
+
+| 엔드포인트 | 설명 |
+| --- | --- |
+| `GET /health` | 서버 상태 확인 |
+| `GET /models` | 저장된 모델 목록 조회 |
+| `POST /solve` | 보드 → AI 이동 시퀀스 반환 |
+
+## Train
+
+```bash
+# 빠른 확인 (~1 min on CPU)
+.venv/bin/python -m ai_solver.train --timesteps 50_000 --tag smoke
+
+# 정식 훈련 (기본값: 5M steps)
+.venv/bin/python -m ai_solver.train --tag reward_v2
+```
+
+## TensorBoard 모니터링
+
+```bash
+# 학습과 별도 터미널에서 실행
+.venv/bin/tensorboard --logdir ai_solver/runs --port 6006
+# → http://localhost:6006
+```
+
+| 지표 | 설명 | 목표 |
+| --- | --- | --- |
+| `game/score_mean` | 실제 게임 점수 평균 (셀 제거 수) | 점진적 상승 |
+| `game/score_max` | 롤아웃 내 최고 점수 | 점진적 상승 |
+| `game/remaining_mean` | 종료 시 평균 남은 셀 수 | 30 이하 |
+| `train/value_loss` | 가치 함수 손실 | 40 이하 |
+| `train/explained_variance` | 가치 함수 설명력 | 0.70 이상 |
+| `eval/mean_reward` | 평가 평균 보상 | 양수 유지 |
 
 Defaults:
 
@@ -109,11 +142,21 @@ Output is a JSON document with the move sequence (`startRow`, `startCol`, `endRo
 | Field              | Default | Notes                                                        |
 | ------------------ | ------- | ------------------------------------------------------------ |
 | `cell_clear`       | `1.0`   | +1 per apple cleared (matches in-game score)                 |
-| `nine_bonus`       | `0.5`   | bonus per cleared 9 — 9를 먼저 페어로 소거하도록 유도        |
-| `eight_bonus`      | `0.3`   | bonus per cleared 8 — 8을 먼저 페어로 소거하도록 유도        |
-| `pair_bonus`       | `0.5`   | bonus when exactly 2 cells cleared (1+9, 2+8 등 페어 무브)   |
-| `all_clear_bonus`  | `50.0`  | terminal bonus on full clear (170/170)                       |
-| `leftover_penalty` | `3.0`   | terminal penalty per remaining apple — 고립 방지 핵심 신호   |
+| `nine_bonus`       | `0.0`   | 비활성화 (CLI `--nine-bonus`로 재활성화 가능)                |
+| `eight_bonus`      | `0.0`   | 비활성화 (CLI `--eight-bonus`로 재활성화 가능)               |
+| `pair_bonus`       | `0.0`   | 비활성화 — 2-셀 이동에 per-cell 프리미엄을 주면 소형 이동만 선택하는 역인센티브 발생 |
+| `all_clear_bonus`  | `20.0`  | terminal bonus on full clear (170/170)                       |
+| `leftover_penalty` | `1.0`   | terminal penalty per remaining apple — `cell_clear`와 동일 단위로 정규화 |
+
+CLI 인자로 각 값 조정 가능:
+```bash
+.venv/bin/python -m ai_solver.train \
+  --leftover-penalty 1.0 \
+  --all-clear-bonus 20.0 \
+  --nine-bonus 0.0 \
+  --eight-bonus 0.0 \
+  --pair-bonus 0.0
+```
 
 ## Action space
 
