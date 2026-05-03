@@ -30,9 +30,9 @@ ai_solver/
 ## Setup
 
 ```bash
-cd <repo>
-python -m venv .venv && source .venv/bin/activate
-pip install -r ai_solver/requirements.txt
+cd "<repo root>"
+python3 -m venv ai_solver/.venv
+ai_solver/.venv/bin/pip install -r ai_solver/requirements.txt
 ```
 
 ## Tests
@@ -44,29 +44,34 @@ pytest ai_solver/tests
 ## Train
 
 ```bash
-# Smoke test (~1 min on CPU): confirms learning curve rises
-python -m ai_solver.train --timesteps 50_000 --tag smoke
+# 프로젝트 루트에서 실행
+cd "/Users/shinjoonseo/Mr.Everything/self-project/apple game"
 
-# Full run (~10–30 min on a modern CPU)
-python -m ai_solver.train --timesteps 2_000_000 --n-envs 8 --tag baseline
+# Smoke test (~1 min on CPU): 학습 곡선 상승 확인용
+ai_solver/.venv/bin/python -m ai_solver.train --timesteps 50_000 --tag smoke
 
-# Watch in TensorBoard
-tensorboard --logdir ai_solver/runs
+# 정식 훈련 (기본값: 5M steps, strategic 보상 체계)
+ai_solver/.venv/bin/python -m ai_solver.train --tag strategic_v1
+
+# TensorBoard 모니터링 (별도 터미널에서 실행)
+ai_solver/.venv/bin/tensorboard --logdir ai_solver/runs
+# → 브라우저에서 http://localhost:6006 접속
 ```
 
 Defaults:
 
-| Hyperparameter | Value     |
-| -------------- | --------- |
-| Algorithm      | MaskablePPO |
-| Policy         | MLP `[256, 256]` |
-| `n_steps`      | 1024      |
-| `batch_size`   | 512       |
-| `gamma`        | 0.995     |
-| `gae_lambda`   | 0.95      |
-| `ent_coef`     | 0.01      |
-| `learning_rate`| 3e-4      |
-| `clip_range`   | 0.2       |
+| Hyperparameter     | Value          |
+| ------------------ | -------------- |
+| Algorithm          | MaskablePPO    |
+| Policy             | MLP `[512, 512]` |
+| `timesteps`        | 5,000,000      |
+| `n_steps`          | 2048           |
+| `batch_size`       | 512            |
+| `gamma`            | 0.995          |
+| `gae_lambda`       | 0.95           |
+| `ent_coef`         | 0.02           |
+| `learning_rate`    | 3e-4           |
+| `clip_range`       | 0.2            |
 
 Checkpoints land in `ai_solver/models/<run>/` every 100k env steps; best-by-eval lives at `ai_solver/models/<run>/best/`.
 
@@ -104,12 +109,11 @@ Output is a JSON document with the move sequence (`startRow`, `startCol`, `endRo
 | Field              | Default | Notes                                                        |
 | ------------------ | ------- | ------------------------------------------------------------ |
 | `cell_clear`       | `1.0`   | +1 per apple cleared (matches in-game score)                 |
-| `nine_bonus`       | `0.0`   | optional bonus per cleared 9                                 |
-| `eight_bonus`      | `0.0`   | optional bonus per cleared 8                                 |
+| `nine_bonus`       | `0.5`   | bonus per cleared 9 — 9를 먼저 페어로 소거하도록 유도        |
+| `eight_bonus`      | `0.3`   | bonus per cleared 8 — 8을 먼저 페어로 소거하도록 유도        |
+| `pair_bonus`       | `0.5`   | bonus when exactly 2 cells cleared (1+9, 2+8 등 페어 무브)   |
 | `all_clear_bonus`  | `50.0`  | terminal bonus on full clear (170/170)                       |
-| `leftover_penalty` | `0.0`   | terminal penalty per remaining apple; flip on if learning stalls |
-
-Default reward is true-to-objective (`+1` per apple, `+50` for all-clear). Tune the rest only if eval plateaus.
+| `leftover_penalty` | `3.0`   | terminal penalty per remaining apple — 고립 방지 핵심 신호   |
 
 ## Action space
 

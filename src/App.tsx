@@ -12,6 +12,7 @@ import { MultiLobby } from './components/MultiLobby'
 import { MultiGame } from './components/MultiGame'
 import { MultiGameOver } from './components/MultiGameOver'
 import { Countdown } from './components/Countdown'
+import { DevSidePanel } from './components/DevSidePanel'
 
 const BOARD_WIDTH = 916
 
@@ -79,6 +80,7 @@ export default function App() {
         )}
       </div>
 
+      <DevSidePanel />
       {gamePhase === 'ended' && multiPhase === 'off' && <GameOverModal />}
 
       {multiPhase === 'waiting' && <MultiLobby />}

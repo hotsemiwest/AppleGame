@@ -11,10 +11,19 @@ import statistics
 from pathlib import Path
 
 import numpy as np
+import torch
 from sb3_contrib import MaskablePPO
 
 from .board_generator import TOTAL_CELLS
 from .fruit_box_env import FruitBoxEnv
+
+
+def _auto_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 def _pick_random_action(mask: np.ndarray, rng: np.random.Generator) -> int:
@@ -48,12 +57,15 @@ def main():
     parser.add_argument("--episodes", type=int, default=200)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--render", action="store_true")
+    parser.add_argument("--device", type=str, default="auto",
+                        help="Device: auto | cpu | cuda | cuda:0 | mps")
     args = parser.parse_args()
 
     if not args.random and args.model is None:
         parser.error("Provide --model PATH or use --random.")
 
-    model = None if args.random else MaskablePPO.load(args.model, device="cpu")
+    device = _auto_device() if args.device == "auto" else args.device
+    model = None if args.random else MaskablePPO.load(args.model, device=device)
     env = FruitBoxEnv(render_mode="human" if args.render else None)
     rng = np.random.default_rng(args.seed)
 

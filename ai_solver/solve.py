@@ -16,9 +16,18 @@ import sys
 from pathlib import Path
 
 import numpy as np
+import torch
 from sb3_contrib import MaskablePPO
 
 from .fruit_box_env import FruitBoxEnv
+
+
+def _auto_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 def load_board(path: str | None) -> np.ndarray:
@@ -34,16 +43,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--model", required=True, type=str, help="Path to trained .zip")
     parser.add_argument("--board-file", type=str, default=None, help="Board JSON path. Omit to read stdin.")
+    parser.add_argument("--device", type=str, default="auto",
+                        help="Device: auto | cpu | cuda | cuda:0 | mps")
     parser.add_argument("--greedy-fallback", action="store_true",
                         help="If model picks an invalid action (mask bug), fall back to first valid.")
     args = parser.parse_args()
 
+    device = _auto_device() if args.device == "auto" else args.device
     board = load_board(args.board_file)
     rows, cols = board.shape
     env = FruitBoxEnv(rows=rows, cols=cols)
     obs, _ = env.reset(options={"board": board})
 
-    model = MaskablePPO.load(args.model, device="cpu")
+    model = MaskablePPO.load(args.model, device=device)
 
     moves: list[tuple[int, int, int, int]] = []
     while True:

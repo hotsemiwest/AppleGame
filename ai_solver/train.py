@@ -11,6 +11,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+import torch
 from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from sb3_contrib.common.wrappers import ActionMasker
@@ -18,6 +19,14 @@ from stable_baselines3.common.callbacks import CheckpointCallback
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from .fruit_box_env import FruitBoxEnv, RewardConfig
+
+
+def _auto_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 ROOT = Path(__file__).resolve().parent
 RUNS_DIR = ROOT / "runs"
@@ -28,9 +37,9 @@ def _mask_fn(env: FruitBoxEnv) -> np.ndarray:
     return env.action_masks()
 
 
-def make_env(seed: int = 0):
+def make_env(seed: int = 0, reward_cfg: RewardConfig | None = None):
     def _thunk():
-        env = FruitBoxEnv(reward_config=RewardConfig())
+        env = FruitBoxEnv(reward_config=reward_cfg or RewardConfig())
         env.reset(seed=seed)
         env = ActionMasker(env, _mask_fn)
         return env
@@ -39,20 +48,37 @@ def make_env(seed: int = 0):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--timesteps", type=int, default=2_000_000)
+    parser.add_argument("--timesteps", type=int, default=5_000_000)
     parser.add_argument("--n-envs", type=int, default=8)
     parser.add_argument("--tag", type=str, default="baseline")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--learning-rate", type=float, default=3e-4)
-    parser.add_argument("--n-steps", type=int, default=1024)
+    parser.add_argument("--n-steps", type=int, default=2048)
     parser.add_argument("--batch-size", type=int, default=512)
     parser.add_argument("--gamma", type=float, default=0.995)
     parser.add_argument("--gae-lambda", type=float, default=0.95)
-    parser.add_argument("--ent-coef", type=float, default=0.01)
+    parser.add_argument("--ent-coef", type=float, default=0.02)
     parser.add_argument("--clip-range", type=float, default=0.2)
     parser.add_argument("--checkpoint-every", type=int, default=100_000)
     parser.add_argument("--resume", type=str, default=None, help="Path to .zip to continue training")
+    parser.add_argument("--device", type=str, default="auto",
+                        help="Device: auto | cpu | cuda | cuda:0 | mps")
+    # reward shaping
+    parser.add_argument("--leftover-penalty", type=float, default=3.0)
+    parser.add_argument("--nine-bonus",        type=float, default=0.5)
+    parser.add_argument("--eight-bonus",       type=float, default=0.3)
+    parser.add_argument("--pair-bonus",        type=float, default=0.5)
     args = parser.parse_args()
+
+    device = _auto_device() if args.device == "auto" else args.device
+    print(f"Using device: {device}")
+
+    reward_cfg = RewardConfig(
+        nine_bonus=args.nine_bonus,
+        eight_bonus=args.eight_bonus,
+        pair_bonus=args.pair_bonus,
+        leftover_penalty=args.leftover_penalty,
+    )
 
     run_name = f"{args.tag}_{int(time.time())}"
     log_dir = RUNS_DIR / run_name
@@ -60,13 +86,13 @@ def main():
     log_dir.mkdir(parents=True, exist_ok=True)
     model_dir.mkdir(parents=True, exist_ok=True)
 
-    env_fns = [make_env(args.seed + i) for i in range(args.n_envs)]
+    env_fns = [make_env(args.seed + i, reward_cfg) for i in range(args.n_envs)]
     vec_env = SubprocVecEnv(env_fns)
 
-    eval_env = SubprocVecEnv([make_env(seed=10_000)])
+    eval_env = SubprocVecEnv([make_env(seed=10_000, reward_cfg=reward_cfg)])
 
     if args.resume:
-        model = MaskablePPO.load(args.resume, env=vec_env, device="cpu")
+        model = MaskablePPO.load(args.resume, env=vec_env, device=device)
     else:
         model = MaskablePPO(
             "MlpPolicy",
@@ -78,11 +104,11 @@ def main():
             gae_lambda=args.gae_lambda,
             ent_coef=args.ent_coef,
             clip_range=args.clip_range,
-            policy_kwargs=dict(net_arch=[256, 256]),
+            policy_kwargs=dict(net_arch=[512, 512]),
             tensorboard_log=str(RUNS_DIR),
             verbose=1,
             seed=args.seed,
-            device="cpu",
+            device=device,
         )
 
     checkpoint_cb = CheckpointCallback(

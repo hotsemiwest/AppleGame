@@ -131,11 +131,15 @@ interface GameState {
   spawnParticles: (cells: CellRef[]) => void
   spawnOpponentParticles: (cells: CellRef[]) => void
   tick: () => void
+  aiSolving: boolean
+  runAISolver: (modelPath: string, moveDelayMs?: number) => Promise<void>
+  stopAISolver: () => void
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
   board: [],
   score: 0,
+  aiSolving: false,
   personalBest: loadPersonalBest(),
   personalBestTime: loadPersonalBestTime(),
   gamePhase: 'start',
@@ -202,7 +206,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   goHome: () => {
-    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [] })
+    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [], aiSolving: false })
   },
 
   endGame: () => {
@@ -216,6 +220,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         gamePhase: 'ended',
         personalBest: isNewRecord ? score : personalBest,
         isNewRecord,
+        aiSolving: false,
       })
     } else {
       const isNewRecord = personalBestTime === 0 || elapsedTime < personalBestTime
@@ -226,6 +231,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         gamePhase: 'ended',
         personalBestTime: isNewRecord ? elapsedTime : personalBestTime,
         isNewRecord,
+        aiSolving: false,
       })
     }
   },
@@ -298,5 +304,41 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   tick: () => { get().syncTime() },
+
+  runAISolver: async (modelPath: string, moveDelayMs = 400) => {
+    if (get().aiSolving) return
+    if (get().gamePhase !== 'playing') throw new Error('게임을 먼저 시작하세요.')
+    set({ aiSolving: true })
+
+    let moves: SelectionRect[]
+    try {
+      const board = get().board
+      const numeric = board.map(row => row.map(cell => cell ?? 0))
+      const resp = await fetch('http://localhost:8000/solve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ board: numeric, model_path: modelPath }),
+      })
+      if (!resp.ok) {
+        const err = await resp.json()
+        throw new Error(err.detail ?? `서버 오류 ${resp.status}`)
+      }
+      const data = await resp.json()
+      moves = data.moves as SelectionRect[]
+    } catch (e) {
+      set({ aiSolving: false })
+      throw e
+    }
+
+    for (const move of moves) {
+      if (!get().aiSolving) break
+      await new Promise(r => setTimeout(r, moveDelayMs))
+      if (!get().aiSolving) break
+      get().confirmSelection(move)
+    }
+    set({ aiSolving: false })
+  },
+
+  stopAISolver: () => set({ aiSolving: false }),
 
 }))
