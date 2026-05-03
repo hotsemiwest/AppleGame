@@ -36,12 +36,13 @@ def _build_action_table(rows: int, cols: int) -> np.ndarray:
 
 @dataclass
 class RewardConfig:
-    cell_clear: float = 1.0          # +1 per apple cleared (matches game score)
-    nine_bonus: float = 0.0          # bonus per 9 cleared (disabled: no strategic benefit over other digits)
-    eight_bonus: float = 0.0         # bonus per 8 cleared (disabled)
-    pair_bonus: float = 0.0          # bonus for 2-cell moves (disabled: created perverse per-cell premium)
-    all_clear_bonus: float = 20.0    # terminal bonus on full board clear
-    leftover_penalty: float = 1.0    # terminal penalty per leftover apple (1.0 = same unit as cell_clear)
+    cell_clear: float = 1.0           # +1 per apple cleared (matches game score)
+    nine_bonus: float = 0.5           # bonus per 9 cleared: 9 has only one partner (1), prone to isolation
+    eight_bonus: float = 0.3          # bonus per 8 cleared: 8 has limited partners (2 or 1+1)
+    small_clear_bonus: float = 0.5    # bonus per move when clearing exactly 2–3 cells (precise pairing)
+    large_clear_penalty: float = 0.4  # penalty per cell when clearing >= 5 at once (wastes 1s/2s needed by 8/9)
+    all_clear_bonus: float = 50.0     # terminal bonus on full board clear
+    leftover_penalty: float = 0.5     # terminal penalty per leftover apple
 
 
 class FruitBoxEnv(gym.Env):
@@ -122,7 +123,8 @@ class FruitBoxEnv(gym.Env):
             cfg.cell_clear * cells_cleared
             + cfg.nine_bonus * nines_cleared
             + cfg.eight_bonus * eights_cleared
-            + (cfg.pair_bonus if cells_cleared == 2 else 0.0)
+            + (cfg.small_clear_bonus if 2 <= cells_cleared <= 3 else 0.0)
+            - (cfg.large_clear_penalty * cells_cleared if cells_cleared >= 5 else 0.0)
         )
 
         terminated = not self._has_any_valid_action()

@@ -89,11 +89,12 @@ def main():
     parser.add_argument("--device", type=str, default="auto",
                         help="Device: auto | cpu | cuda | cuda:0 | mps")
     # reward shaping
-    parser.add_argument("--leftover-penalty", type=float, default=1.0)
-    parser.add_argument("--nine-bonus",        type=float, default=0.0)
-    parser.add_argument("--eight-bonus",       type=float, default=0.0)
-    parser.add_argument("--pair-bonus",        type=float, default=0.0)
-    parser.add_argument("--all-clear-bonus",   type=float, default=20.0)
+    parser.add_argument("--leftover-penalty",    type=float, default=0.5)
+    parser.add_argument("--nine-bonus",          type=float, default=0.5)
+    parser.add_argument("--eight-bonus",         type=float, default=0.3)
+    parser.add_argument("--small-clear-bonus",   type=float, default=0.5)
+    parser.add_argument("--large-clear-penalty", type=float, default=0.4)
+    parser.add_argument("--all-clear-bonus",     type=float, default=50.0)
     args = parser.parse_args()
 
     device = _auto_device() if args.device == "auto" else args.device
@@ -102,7 +103,8 @@ def main():
     reward_cfg = RewardConfig(
         nine_bonus=args.nine_bonus,
         eight_bonus=args.eight_bonus,
-        pair_bonus=args.pair_bonus,
+        small_clear_bonus=args.small_clear_bonus,
+        large_clear_penalty=args.large_clear_penalty,
         leftover_penalty=args.leftover_penalty,
         all_clear_bonus=args.all_clear_bonus,
     )

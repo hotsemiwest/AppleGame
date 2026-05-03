@@ -11,12 +11,12 @@ import { formatTime } from '../utils/gameLogic'
 type Phase = 'submitting' | 'leaderboard' | 'guest'
 
 export function GameOverModal() {
-  const { score, personalBest, personalBestTime, elapsedTime, gameMode, isNewRecord, startGame, goHome } = useGameStore()
+  const { score, personalBest, personalBestTime, elapsedTime, gameMode, isNewRecord, isAIGame, startGame, goHome } = useGameStore()
   const { user, displayName, setPendingAuth } = useAuthStore()
 
   const isTimeAttack = gameMode === 'time'
 
-  const [phase, setPhase] = useState<Phase>(user ? 'submitting' : 'guest')
+  const [phase, setPhase] = useState<Phase>(user && !isAIGame ? 'submitting' : 'guest')
   const [submittedName, setSubmittedName] = useState<string | undefined>()
   const [showAuth, setShowAuth] = useState(false)
   const [history, setHistory] = useState<HistoryEntry[]>([])
@@ -113,13 +113,20 @@ export function GameOverModal() {
             </div>
           </div>
 
+          {/* AI 데모 안내 */}
+          {isAIGame && (
+            <div className="text-center text-xs mb-4 py-2 rounded-xl" style={{ background: C.surfaceDim, color: C.textSub }}>
+              🤖 AI 데모 결과는 랭킹에 등록되지 않습니다
+            </div>
+          )}
+
           {/* 자동 제출 중 */}
-          {phase === 'submitting' && (
+          {!isAIGame && phase === 'submitting' && (
             <div className="text-center text-gray-400 text-sm mb-4 py-2">랭킹 등록 중...</div>
           )}
 
           {/* 게스트 안내 */}
-          {phase === 'guest' && (
+          {!isAIGame && phase === 'guest' && (
             <div className="mb-4">
               <button
                 onClick={() => setShowAuth(true)}

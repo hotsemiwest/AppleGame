@@ -5,7 +5,7 @@ import {
 } from '../types/game'
 import { PARTICLE_COLORS } from '../theme/tokens'
 import { generateBoardForDifficulty, getBoardDifficulty, getBoardDifficultyRange, sumBoard } from '../utils/boardGenerator'
-import { isValidSelection, clearRect } from '../utils/gameLogic'
+import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { useThemeStore } from './themeStore'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
@@ -132,6 +132,7 @@ interface GameState {
   spawnOpponentParticles: (cells: CellRef[]) => void
   tick: () => void
   aiSolving: boolean
+  isAIGame: boolean
   runAISolver: (modelPath: string, moveDelayMs?: number) => Promise<void>
   stopAISolver: () => void
 }
@@ -140,6 +141,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   board: [],
   score: 0,
   aiSolving: false,
+  isAIGame: false,
   personalBest: loadPersonalBest(),
   personalBestTime: loadPersonalBestTime(),
   gamePhase: 'start',
@@ -189,6 +191,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       scorePopups: [],
       gamePhase: 'playing',
       isNewRecord: false,
+      isAIGame: false,
     })
   },
 
@@ -261,6 +264,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ board: newBoard, score: newScore })
     if (gameMode === 'time' && newScore >= TIME_ATTACK_TARGET) {
       get().endGame()
+    } else if (!hasAnySolution(newBoard)) {
+      get().endGame()
     }
   },
 
@@ -308,7 +313,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   runAISolver: async (modelPath: string, moveDelayMs = 400) => {
     if (get().aiSolving) return
     if (get().gamePhase !== 'playing') throw new Error('게임을 먼저 시작하세요.')
-    set({ aiSolving: true })
+    set({ aiSolving: true, isAIGame: true })
 
     let moves: SelectionRect[]
     try {
