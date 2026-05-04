@@ -52,7 +52,7 @@ export function Header() {
                   <>
                     <div className="text-center">
                       <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">진행도</div>
-                      <div className={`text-3xl font-bold score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
+                      <div key={score} className={`text-3xl font-bold score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>
                         {score}<span className="text-base font-semibold text-gray-400">/{TIME_ATTACK_TARGET}</span>
                       </div>
                     </div>
@@ -67,7 +67,7 @@ export function Header() {
                   <>
                     <div className="text-center">
                       <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">점수</div>
-                      <div className={`text-3xl font-bold score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{score}</div>
+                      <div key={score} className={`text-3xl font-bold score-display ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>{score}</div>
                     </div>
                     <div className="text-center">
                       <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">최고기록</div>

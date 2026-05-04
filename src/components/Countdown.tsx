@@ -41,16 +41,6 @@ export function Countdown({ onFinish }: Props) {
       <p className="text-gray-400 text-lg font-semibold mt-4 tracking-widest uppercase">
         준비하세요
       </p>
-      <style>{`
-        @keyframes countdown-pop {
-          0%   { transform: scale(1.4); opacity: 0; }
-          30%  { transform: scale(0.95); opacity: 1; }
-          100% { transform: scale(1); opacity: 1; }
-        }
-        .countdown-number {
-          animation: countdown-pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-        }
-      `}</style>
     </div>
   )
 }
