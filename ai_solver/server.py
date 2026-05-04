@@ -7,6 +7,10 @@ Production (Railway):
     HF_REPO_ID=<username>/<repo> 환경변수 설정 시
     /models 에서 HF Hub의 모든 모델을 동적으로 조회하고,
     /solve 요청 시 해당 모델을 처음 사용할 때 자동 다운로드.
+
+Environment variables:
+    ALLOWED_ORIGINS  — 쉼표로 구분된 허용 오리진 (기본: localhost 개발 서버)
+    AI_API_KEY       — 설정 시 요청 헤더 X-API-Key 검증 활성화
 """
 from __future__ import annotations
 
@@ -17,18 +21,28 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from fastapi.security.api_key import APIKeyHeader
+from pydantic import BaseModel, Field, field_validator
 from sb3_contrib import MaskablePPO
 
 from .fruit_box_env import FruitBoxEnv
 
 MODELS_DIR = Path(__file__).resolve().parent / "models"
 HF_CACHE_DIR = MODELS_DIR / "_hf_cache"
+MAX_MOVE_LIMIT = 1000
 
 _model_cache: dict[str, MaskablePPO] = {}
 _hf_download_cache: dict[str, str] = {}  # hf_path -> local_path
+
+_api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
+
+
+def _verify_api_key(api_key: str | None = Security(_api_key_header)) -> None:
+    required = os.getenv("AI_API_KEY")
+    if required and api_key != required:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key")
 
 
 def _list_hf_runs(repo_id: str) -> list[dict]:
@@ -117,9 +131,12 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Fruit Box AI Solver", lifespan=lifespan)
 
+_default_origins = "http://localhost:5173,http://localhost:4173,http://localhost:3000"
+_allowed_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", _default_origins).split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
@@ -128,7 +145,21 @@ app.add_middleware(
 class SolveRequest(BaseModel):
     board: list[list[int]]
     model_path: Optional[str] = None
-    move_limit: int = 500
+    move_limit: int = Field(default=500, ge=1, le=MAX_MOVE_LIMIT)
+
+    @field_validator("board")
+    @classmethod
+    def validate_board(cls, v: list[list[int]]) -> list[list[int]]:
+        if not v or not v[0]:
+            raise ValueError("board must be non-empty")
+        cols = len(v[0])
+        for row in v:
+            if len(row) != cols:
+                raise ValueError("board rows must have equal length")
+            for cell in row:
+                if not (0 <= cell <= 9):
+                    raise ValueError("board values must be 0-9")
+        return v
 
 
 class Move(BaseModel):
@@ -145,12 +176,21 @@ class SolveResponse(BaseModel):
     total_moves: int
 
 
+def _validate_local_path(path: str) -> None:
+    """로컬 파일 경로가 MODELS_DIR 안에 있는지 확인해 path traversal을 차단한다."""
+    try:
+        resolved = Path(path).resolve()
+        resolved.relative_to(MODELS_DIR.resolve())
+    except (ValueError, RuntimeError):
+        raise HTTPException(status_code=400, detail="허용되지 않은 모델 경로입니다")
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
-@app.get("/models")
+@app.get("/models", dependencies=[Depends(_verify_api_key)])
 def list_models():
     runs = []
 
@@ -189,7 +229,7 @@ def list_models():
     return {"runs": runs}
 
 
-@app.post("/solve", response_model=SolveResponse)
+@app.post("/solve", response_model=SolveResponse, dependencies=[Depends(_verify_api_key)])
 def solve(req: SolveRequest):
     raw_path = req.model_path or os.getenv("AI_MODEL_PATH")
     if not raw_path:
@@ -198,13 +238,18 @@ def solve(req: SolveRequest):
             detail="model_path 를 요청에 포함하거나 HF_REPO_ID / AI_MODEL_PATH 환경변수를 설정하세요.",
         )
 
+    if not raw_path.startswith("hf://"):
+        _validate_local_path(raw_path)
+
     try:
         model_path = _resolve_path(raw_path)
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 다운로드 실패: {e}")
 
     if not Path(model_path).exists():
-        raise HTTPException(status_code=404, detail=f"모델 파일을 찾을 수 없음: {model_path}")
+        raise HTTPException(status_code=404, detail="모델 파일을 찾을 수 없음")
 
     try:
         model = _load_model(model_path)

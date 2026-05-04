@@ -10,7 +10,12 @@ RUN pip install --no-cache-dir -r requirements-server.txt
 
 COPY ai_solver/ ./ai_solver/
 
-RUN mkdir -p ai_solver/models
+RUN mkdir -p ai_solver/models && \
+    addgroup --system appgroup && \
+    adduser --system --ingroup appgroup appuser && \
+    chown -R appuser:appgroup /app
+
+USER appuser
 
 EXPOSE 8000
 

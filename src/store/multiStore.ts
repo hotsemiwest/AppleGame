@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { Board, SelectionRect, GameMode, GAME_DURATION, MULTI_TIME_ATTACK_TARGET } from '../types/game'
-import { generateBoard, getBoardDifficulty, getBoardDifficultyRange, sumBoard } from '../utils/boardGenerator'
+import { generateBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { supabase, createMultiRoom, joinMultiRoom, startMultiGame, endMultiRoom } from '../lib/supabase'
 import { useAuthStore } from './authStore'
@@ -321,16 +321,6 @@ export const useMultiStore = create<MultiState>((set, get) => ({
     const { roomCode, gameMode } = get()
     if (!roomCode) return
     const board = generateBoard()
-    const boardSum = sumBoard(board)
-    const boardDifficulty = getBoardDifficulty(board)
-    console.log('[Game Start] Board sum:', boardSum)
-    console.log('[Game Start] Difficulty calculation:', {
-      metric: 'board sum',
-      boardSum,
-      thresholds: ['<800 => 0', '800~819 => 1', '820~839 => 2', '840~859 => 3', '860~879 => 4', '880+ => 5'],
-      matchedRange: getBoardDifficultyRange(boardDifficulty),
-      difficulty: boardDifficulty,
-    })
     startMultiGame(roomCode, board as unknown as number[][]).catch(() => {})
     channel?.send({
       type: 'broadcast',

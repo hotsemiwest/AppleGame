@@ -4,7 +4,7 @@ import {
   SelectionRect, CellRef, GAME_DURATION, TIME_ATTACK_TARGET,
 } from '../types/game'
 import { PARTICLE_COLORS } from '../theme/tokens'
-import { generateBoardForDifficulty, getBoardDifficulty, getBoardDifficultyRange, sumBoard } from '../utils/boardGenerator'
+import { generateBoardForDifficulty, getBoardDifficulty } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { useThemeStore } from './themeStore'
 import { AI_API_BASE } from '../lib/aiApi'
@@ -170,17 +170,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   beginPlaying: () => {
     const targetDifficulty = useThemeStore.getState().soloBoardDifficulty
     const board = generateBoardForDifficulty(targetDifficulty)
-    const boardSum = sumBoard(board)
     const boardDifficulty = getBoardDifficulty(board)
-    console.log('[Game Start] Board sum:', boardSum)
-    console.log('[Game Start] Difficulty calculation:', {
-      targetDifficulty,
-      metric: 'board sum',
-      boardSum,
-      thresholds: ['<800 : 1', '800~819 : 2', '820~839 : 3', '840~859 : 4', '860<= : 5'],
-      matchedRange: getBoardDifficultyRange(boardDifficulty),
-      difficulty: boardDifficulty,
-    })
     set({
       board,
       score: 0,
