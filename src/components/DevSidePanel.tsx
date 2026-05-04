@@ -11,6 +11,18 @@ type ModelRun = { name: string; models: ModelEntry[] }
 
 const PANEL_WIDTH = 264
 
+function formatRunName(name: string) {
+  const m = name.match(/^(.+?)_(\d{10})$/)
+  if (!m) return name
+  const tag = m[1].replace(/_/g, ' ')
+  const d = new Date(parseInt(m[2]) * 1000)
+  const mo = String(d.getMonth() + 1).padStart(2, '0')
+  const dy = String(d.getDate()).padStart(2, '0')
+  const hh = String(d.getHours()).padStart(2, '0')
+  const mm = String(d.getMinutes()).padStart(2, '0')
+  return `${tag} · ${mo}/${dy} ${hh}:${mm}`
+}
+
 function useWindowWidth() {
   const [width, setWidth] = useState(() =>
     typeof window !== 'undefined' ? window.innerWidth : 1400
@@ -181,9 +193,45 @@ export function DevSidePanel() {
 
       <Divider />
 
-      <Label>AI 데모</Label>
-      <div className="flex flex-col gap-2">
-        <div className="flex gap-1">
+      {/* AI 데모 헤더 — 라벨 + 연결 상태 + 새로고침 */}
+      <div className="flex items-center gap-2 mb-1.5">
+        <Label>AI 데모</Label>
+        <div className="ml-auto flex items-center gap-1.5">
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%', flexShrink: 0,
+            background: modelsLoading ? '#f59e0b' : modelRuns.length > 0 ? '#22c55e' : '#4b5563',
+            boxShadow: modelsLoading ? '0 0 6px #f59e0b80' : modelRuns.length > 0 ? '0 0 6px #22c55e80' : 'none',
+            transition: 'all 0.3s',
+          }} />
+          <span className="text-xs" style={{
+            color: modelsLoading ? '#f59e0b' : modelRuns.length > 0 ? '#22c55e' : C.textSub,
+            transition: 'color 0.3s',
+          }}>
+            {modelsLoading ? '조회 중' : modelRuns.length > 0 ? `${modelRuns.length}개 런` : '미연결'}
+          </span>
+          <button
+            onClick={fetchModels}
+            disabled={modelsLoading}
+            title="새로고침"
+            className="rounded px-1.5 py-0.5 text-xs transition-all active:scale-95 disabled:opacity-40"
+            style={{ color: C.textSub, background: C.surfaceRaised, border: `1px solid ${C.borderFaint}` }}
+          >
+            {modelsLoading ? '…' : '↺'}
+          </button>
+        </div>
+      </div>
+
+      {/* 모델 선택 카드 */}
+      <div style={{
+        borderRadius: 10,
+        border: `1px solid ${C.borderFaint}`,
+        overflow: 'hidden',
+        opacity: modelRuns.length === 0 ? 0.5 : 1,
+        transition: 'opacity 0.2s',
+      }}>
+        {/* 런 선택 */}
+        <div style={{ padding: '7px 10px', borderBottom: `1px solid ${C.borderFaint}`, background: C.surfaceRaised }}>
+          <div className="text-xs mb-1" style={{ color: C.textSub, fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>런</div>
           <select
             value={selectedRun}
             onChange={e => {
@@ -192,82 +240,95 @@ export function DevSidePanel() {
               if (run?.models.length) setModelPath(run.models[0].path)
             }}
             disabled={modelsLoading || modelRuns.length === 0}
-            className="flex-1 rounded-lg px-3 py-2 text-xs min-w-0"
+            className="w-full text-xs"
             style={{
-              background: C.surfaceRaised,
-              border: `1px solid ${C.borderFaint}`,
+              background: 'transparent',
+              border: 'none',
               color: modelRuns.length === 0 ? C.textSub : C.textPrimary,
               outline: 'none',
+              padding: 0,
+              fontWeight: 500,
             }}
           >
             {modelRuns.length === 0
               ? <option value="">서버 미연결</option>
-              : modelRuns.map(r => <option key={r.name} value={r.name}>{r.name}</option>)
+              : modelRuns.map(r => (
+                  <option key={r.name} value={r.name}>{formatRunName(r.name)}</option>
+                ))
             }
           </select>
-          <button
-            onClick={fetchModels}
-            disabled={modelsLoading}
-            title="새로고침"
-            className="rounded-lg px-2 py-2 text-xs transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: C.surfaceRaised, border: `1px solid ${C.borderFaint}`, color: C.textSub, flexShrink: 0 }}
-          >
-            {modelsLoading ? '⏳' : '↺'}
-          </button>
         </div>
 
-        <select
-          value={modelPath}
-          onChange={e => setModelPath(e.target.value)}
-          disabled={modelsLoading || modelRuns.length === 0}
-          className="w-full rounded-lg px-3 py-2 text-xs"
-          style={{
-            background: C.surfaceRaised,
-            border: `1px solid ${C.borderFaint}`,
-            color: modelRuns.length === 0 ? C.textSub : C.textPrimary,
-            outline: 'none',
-          }}
-        >
-          {(modelRuns.find(r => r.name === selectedRun)?.models ?? []).map(m => (
-            <option key={m.path} value={m.path}>{m.label}</option>
-          ))}
-        </select>
+        {/* 모델 선택 */}
+        <div style={{ padding: '7px 10px', background: C.surfaceRaised }}>
+          <div className="text-xs mb-1" style={{ color: C.textSub, fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>모델</div>
+          <select
+            value={modelPath}
+            onChange={e => setModelPath(e.target.value)}
+            disabled={modelsLoading || modelRuns.length === 0}
+            className="w-full text-xs"
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: modelRuns.length === 0 ? C.textSub : C.textPrimary,
+              outline: 'none',
+              padding: 0,
+              fontWeight: 500,
+            }}
+          >
+            {(modelRuns.find(r => r.name === selectedRun)?.models ?? []).map(m => (
+              <option key={m.path} value={m.path}>{m.label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
+      {/* 실행/중지 버튼 */}
+      <div className="mt-2">
         {aiSolving ? (
           <button
             onClick={stopAISolver}
             className="w-full rounded-lg py-2 text-xs font-bold transition-all active:scale-95"
-            style={{ background: '#ef444420', border: '1px solid #ef4444', color: '#ef4444' }}
+            style={{ background: '#ef444418', border: '1px solid #ef444460', color: '#ef4444' }}
           >
             ⏹ 중지
           </button>
         ) : (
           <button
             onClick={handleAIDemo}
-            disabled={!isPlaying}
-            className="w-full rounded-lg py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-40"
-            style={{ background: C.surfaceRaised, border: `1px solid ${C.borderFaint}`, color: C.textPrimary }}
+            disabled={!isPlaying || modelRuns.length === 0}
+            className="w-full rounded-lg py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-35"
+            style={{
+              background: isPlaying && modelRuns.length > 0 ? 'rgba(34,197,94,0.12)' : C.surfaceRaised,
+              border: `1px solid ${isPlaying && modelRuns.length > 0 ? 'rgba(34,197,94,0.4)' : C.borderFaint}`,
+              color: isPlaying && modelRuns.length > 0 ? '#22c55e' : C.textPrimary,
+              transition: 'all 0.2s',
+            }}
           >
             🤖 AI 데모 시작
           </button>
         )}
+      </div>
 
-        {!isPlaying && (
-          <div className="text-xs" style={{ color: C.textSub }}>게임을 시작한 뒤 실행하세요.</div>
-        )}
-
-        {aiError && (
-          <div
-            className="rounded-lg px-3 py-2 text-xs break-all"
-            style={{ background: '#ef444415', border: '1px solid #ef444440', color: '#ef4444' }}
-          >
-            {aiError}
-          </div>
-        )}
-
-        <div className="text-xs leading-relaxed" style={{ color: C.textSub }}>
-          서버: <code className="px-1 rounded" style={{ background: C.surfaceRaised }}>uvicorn ai_solver.server:app --port 8000</code>
+      {/* 안내 / 에러 */}
+      {!isPlaying && (
+        <div className="text-xs mt-1" style={{ color: C.textSub }}>게임을 시작한 뒤 실행하세요.</div>
+      )}
+      {aiError && (
+        <div
+          className="rounded-lg px-3 py-2 text-xs break-all mt-1"
+          style={{ background: '#ef444415', border: '1px solid #ef444440', color: '#ef4444' }}
+        >
+          {aiError}
         </div>
+      )}
+
+      {/* 서버 URL */}
+      <div className="flex items-center gap-1.5 mt-1.5" style={{ color: C.textSub }}>
+        <span style={{ fontSize: 10 }}>🔗</span>
+        <span className="text-xs truncate" style={{ fontSize: 10 }}>
+          {AI_API_BASE.replace('https://', '')}
+        </span>
       </div>
     </>
   )
