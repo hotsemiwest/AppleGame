@@ -32,10 +32,14 @@ function getTier(count: number): ParticleTier {
   return 'normal'
 }
 
+const PARTICLE_CELL      = 54  // TILE_SIZE(52) + GAP(2)
+const PARTICLE_TILE_HALF = 26  // TILE_SIZE(52) / 2
+const DEG_TO_RAD         = Math.PI / 180
+
 const TIER_CONFIG: Record<ParticleTier, { perTile: number; size: number; baseDist: number; duration: number }> = {
-  normal: { perTile: 10, size: 10,  baseDist: 65,  duration: 650  },
-  combo:  { perTile: 15, size: 15,  baseDist: 95,  duration: 820  },
-  big:    { perTile: 22, size: 19,  baseDist: 130, duration: 1050 },
+  normal: { perTile: 7,  size: 7,   baseDist: 60,  duration: 600  },
+  combo:  { perTile: 10, size: 10,  baseDist: 88,  duration: 780  },
+  big:    { perTile: 14, size: 12,  baseDist: 120, duration: 980  },
 }
 
 // Small bright sparks that shoot farther and faster (combo/big only)
@@ -54,11 +58,14 @@ export function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle
 
   const particles: Particle[] = []
   for (const cell of cells) {
+    const px = cell.col * PARTICLE_CELL + PARTICLE_TILE_HALF
+    const py = cell.row * PARTICLE_CELL + PARTICLE_TILE_HALF
     const angleOffset = Math.random() * (360 / perTile)
 
     // Main burst
     for (let i = 0; i < perTile; i++) {
       const angle = (i / perTile) * 360 + angleOffset
+      const rad = angle * DEG_TO_RAD
       const dist = baseDist * (0.65 + Math.random() * 0.7)
       particles.push({
         id: `${prefix}-${cell.row}-${cell.col}-${i}-${ts}`,
@@ -71,30 +78,42 @@ export function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle
         duration,
         tier,
         shape: 'circle',
-        delay: Math.random() * 60,
+        delay: Math.random() * 50,
+        startTime: ts,
+        vx: Math.cos(rad),
+        vy: Math.sin(rad),
+        px,
+        py,
         ...(isOpponent && { isOpponent: true }),
       })
     }
 
     // Sparkle secondary burst (combo / big only)
     if (tier !== 'normal') {
-      const sparkCount = tier === 'big' ? 7 : 4
-      const sparkDist = baseDist * 1.55
-      const sparkDur  = Math.round(duration * 0.48)
+      const sparkCount = tier === 'big' ? 4 : 3
+      const sparkDist = baseDist * 1.45
+      const sparkDur  = Math.round(duration * 0.45)
       for (let i = 0; i < sparkCount; i++) {
+        const angle = Math.random() * 360
+        const rad = angle * DEG_TO_RAD
         particles.push({
           id: `${prefix}-sp-${cell.row}-${cell.col}-${i}-${ts}`,
           row: cell.row,
           col: cell.col,
           color: SPARKLE_COLORS[i % SPARKLE_COLORS.length],
-          angle: Math.random() * 360,
-          size: 5,
+          angle,
+          size: 4,
           distance: sparkDist * (0.8 + Math.random() * 0.4),
           duration: sparkDur,
           tier,
           shape: 'circle',
-          delay: 30 + Math.random() * 90,
+          delay: 25 + Math.random() * 70,
           rotation: 0,
+          startTime: ts,
+          vx: Math.cos(rad),
+          vy: Math.sin(rad),
+          px,
+          py,
           ...(isOpponent && { isOpponent: true }),
         })
       }
@@ -253,14 +272,54 @@ export const useGameStore = create<GameState>((set, get) => ({
     const { board, score, gameMode } = get()
     if (!isValidSelection(board, rect)) return
     const { newBoard, cleared } = clearRect(board, rect)
-    get().spawnParticles(cleared)
-    const newScore = score + cleared.length
-    set({ board: newBoard, score: newScore })
-    if (gameMode === 'time' && newScore >= TIME_ATTACK_TARGET) {
-      get().endGame()
-    } else if (!hasAnySolution(newBoard)) {
-      get().endGame()
+
+    const count = cleared.length
+    const tier = getTier(count)
+    if (useThemeStore.getState().soundEnabled) playPopSound(tier)
+
+    const [newParticles, duration] = buildParticles(cleared, false)
+    const ts = Date.now()
+    const newPopups: ScorePopup[] = []
+    if (tier !== 'normal') {
+      const rows = cleared.map(c => c.row)
+      const cols = cleared.map(c => c.col)
+      newPopups.push({
+        id: `popup-${ts}`,
+        count,
+        centerRow: (Math.min(...rows) + Math.max(...rows)) / 2,
+        centerCol: (Math.min(...cols) + Math.max(...cols)) / 2,
+        tier: tier === 'big' ? 'big' : 'combo',
+      })
     }
+
+    const newScore = score + count
+
+    // Phase 1 (this frame): particles + score — lightweight render, canvas animation starts immediately
+    set(state => ({
+      score: newScore,
+      particles: [...state.particles, ...newParticles],
+      scorePopups: [...state.scorePopups, ...newPopups],
+    }))
+
+    // Particle cleanup
+    setTimeout(() => {
+      const ids = new Set(newParticles.map(p => p.id))
+      const popupIds = new Set(newPopups.map(p => p.id))
+      set(state => ({
+        particles: state.particles.filter(p => !ids.has(p.id)),
+        scorePopups: state.scorePopups.filter(p => !popupIds.has(p.id)),
+      }))
+    }, duration + 400)
+
+    // Phase 2 (next task): board update — heavy 170-tile reconciliation runs after canvas gets first frame
+    setTimeout(() => {
+      set({ board: newBoard })
+      if (gameMode === 'time' && newScore >= TIME_ATTACK_TARGET) {
+        get().endGame()
+      } else if (!hasAnySolution(newBoard)) {
+        get().endGame()
+      }
+    }, 0)
   },
 
   spawnParticles: (cells: CellRef[]) => {
@@ -288,9 +347,11 @@ export const useGameStore = create<GameState>((set, get) => ({
       scorePopups: [...state.scorePopups, ...newPopups],
     }))
     setTimeout(() => {
+      const ids = new Set(newParticles.map(p => p.id))
+      const popupIds = new Set(newPopups.map(p => p.id))
       set(state => ({
-        particles: state.particles.filter(p => !newParticles.some(np => np.id === p.id)),
-        scorePopups: state.scorePopups.filter(p => !newPopups.some(np => np.id === p.id)),
+        particles: state.particles.filter(p => !ids.has(p.id)),
+        scorePopups: state.scorePopups.filter(p => !popupIds.has(p.id)),
       }))
     }, duration + 400)
   },
@@ -299,7 +360,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     const [newParticles, duration] = buildParticles(cells, true)
     set(state => ({ particles: [...state.particles, ...newParticles] }))
     setTimeout(() => {
-      set(state => ({ particles: state.particles.filter(p => !newParticles.some(np => np.id === p.id)) }))
+      const ids = new Set(newParticles.map(p => p.id))
+      set(state => ({ particles: state.particles.filter(p => !ids.has(p.id)) }))
     }, duration + 200)
   },
 

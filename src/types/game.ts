@@ -37,8 +37,14 @@ export interface Particle {
   tier: ParticleTier
   isOpponent?: boolean
   shape?: ParticleShape
-  delay?: number    // animation-delay in ms
-  rotation?: number // initial rotation in degrees (used for spinning diamonds)
+  delay?: number
+  rotation?: number
+  startTime?: number
+  // Precomputed at spawn time to avoid per-frame recalculation
+  vx?: number  // Math.cos(angle * PI/180)
+  vy?: number  // Math.sin(angle * PI/180)
+  px?: number  // col * CELL + TILE_HALF — pixel center x
+  py?: number  // row * CELL + TILE_HALF — pixel center y
 }
 
 export interface ScorePopup {

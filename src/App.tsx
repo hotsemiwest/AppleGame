@@ -25,7 +25,10 @@ function ThemeSync() {
 }
 
 export default function App() {
-  const { gamePhase, tick, syncTime, beginPlaying } = useGameStore()
+  const gamePhase   = useGameStore(s => s.gamePhase)
+  const tick        = useGameStore(s => s.tick)
+  const syncTime    = useGameStore(s => s.syncTime)
+  const beginPlaying = useGameStore(s => s.beginPlaying)
   const { initialize, pendingAuth, setPendingAuth } = useAuthStore()
   const multiPhase = useMultiStore(s => s.phase)
   const multiBeginPlaying = useMultiStore(s => s.beginPlaying)

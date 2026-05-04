@@ -14,7 +14,17 @@ import { SegmentedControl } from './SegmentedControl'
 import { getDifficultyStarCount } from '../config/difficultyConfig'
 
 export function Header() {
-  const { score, personalBest, personalBestTime, timeLeft, elapsedTime, gameMode, gamePhase, startGame, goHome, board, boardDifficulty } = useGameStore()
+  const score          = useGameStore(s => s.score)
+  const personalBest   = useGameStore(s => s.personalBest)
+  const personalBestTime = useGameStore(s => s.personalBestTime)
+  const timeLeft       = useGameStore(s => s.timeLeft)
+  const elapsedTime    = useGameStore(s => s.elapsedTime)
+  const gameMode       = useGameStore(s => s.gameMode)
+  const gamePhase      = useGameStore(s => s.gamePhase)
+  const startGame      = useGameStore(s => s.startGame)
+  const goHome         = useGameStore(s => s.goHome)
+  const board          = useGameStore(s => s.board)
+  const boardDifficulty = useGameStore(s => s.boardDifficulty)
   const { user, displayName, signOut, setPendingAuth } = useAuthStore()
   const theme = useThemeStore(s => s.theme)
   const showHintCount = useThemeStore(s => s.showHintCount)
