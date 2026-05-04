@@ -37,9 +37,9 @@ const PARTICLE_TILE_HALF = 26  // TILE_SIZE(52) / 2
 const DEG_TO_RAD         = Math.PI / 180
 
 const TIER_CONFIG: Record<ParticleTier, { perTile: number; size: number; baseDist: number; duration: number }> = {
-  normal: { perTile: 7,  size: 7,   baseDist: 60,  duration: 600  },
-  combo:  { perTile: 10, size: 10,  baseDist: 88,  duration: 780  },
-  big:    { perTile: 14, size: 12,  baseDist: 120, duration: 980  },
+  normal: { perTile: 7,  size: 7,   baseDist: 50,  duration: 600  },
+  combo:  { perTile: 9,  size: 8.5, baseDist: 74,  duration: 720  },
+  big:    { perTile: 12, size: 10,  baseDist: 98,  duration: 900  },
 }
 
 // Small bright sparks that shoot farther and faster (combo/big only)
@@ -90,9 +90,9 @@ export function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle
 
     // Sparkle secondary burst (combo / big only)
     if (tier !== 'normal') {
-      const sparkCount = tier === 'big' ? 4 : 3
-      const sparkDist = baseDist * 1.45
-      const sparkDur  = Math.round(duration * 0.45)
+      const sparkCount = tier === 'big' ? 3 : 2
+      const sparkDist = baseDist * 1.25
+      const sparkDur  = Math.round(duration * 0.4)
       for (let i = 0; i < sparkCount; i++) {
         const angle = Math.random() * 360
         const rad = angle * DEG_TO_RAD
@@ -102,7 +102,7 @@ export function buildParticles(cells: CellRef[], isOpponent: boolean): [Particle
           col: cell.col,
           color: SPARKLE_COLORS[i % SPARKLE_COLORS.length],
           angle,
-          size: 4,
+          size: tier === 'big' ? 3.5 : 3,
           distance: sparkDist * (0.8 + Math.random() * 0.4),
           duration: sparkDur,
           tier,

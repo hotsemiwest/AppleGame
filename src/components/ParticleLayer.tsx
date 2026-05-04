@@ -1,7 +1,7 @@
 import { useRef, useEffect } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { C } from '../theme/tokens'
-import { Particle } from '../types/game'
+import { Particle, ScorePopup } from '../types/game'
 
 const TILE_SIZE = 52
 const GAP = 2
@@ -15,8 +15,16 @@ const DEG_TO_RAD = Math.PI / 180
 const TWO_PI     = Math.PI * 2
 const easeOut    = (t: number) => t * (2 - t)
 
-function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[], now: number) {
-  ctx.clearRect(0, 0, BOARD_W, BOARD_H)
+function drawParticles(
+  ctx: CanvasRenderingContext2D,
+  particles: Particle[],
+  now: number,
+  width: number,
+  height: number,
+  cellSize: number,
+  tileSize: number,
+) {
+  ctx.clearRect(0, 0, width, height)
   let currentColor = ''
   for (const p of particles) {
     const elapsed = now - (p.startTime ?? now) - (p.delay ?? 0)
@@ -28,8 +36,8 @@ function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[], now
     // Use precomputed vx/vy/px/py; fall back to on-the-fly calc for old particles
     const vx = p.vx ?? Math.cos(p.angle * DEG_TO_RAD)
     const vy = p.vy ?? Math.sin(p.angle * DEG_TO_RAD)
-    const originX = p.px ?? (p.col * CELL + TILE_SIZE / 2)
-    const originY = p.py ?? (p.row * CELL + TILE_SIZE / 2)
+    const originX = p.px ?? (p.col * cellSize + tileSize / 2)
+    const originY = p.py ?? (p.row * cellSize + tileSize / 2)
     const x      = originX + vx * p.distance * eased
     const y      = originY + vy * p.distance * eased
     const radius = (p.size / 2) * (1 - progress)
@@ -47,10 +55,28 @@ function drawParticles(ctx: CanvasRenderingContext2D, particles: Particle[], now
   ctx.globalAlpha = 1
 }
 
-export function ParticleLayer() {
+interface ParticleLayerProps {
+  particles?: Particle[]
+  scorePopups?: ScorePopup[]
+  width?: number
+  height?: number
+  tileSize?: number
+  gap?: number
+}
+
+export function ParticleLayer({
+  particles,
+  scorePopups,
+  width = BOARD_W,
+  height = BOARD_H,
+  tileSize = TILE_SIZE,
+  gap = GAP,
+}: ParticleLayerProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const rafRef = useRef<number>(0)
-  const scorePopups = useGameStore(state => state.scorePopups)
+  const storeScorePopups = useGameStore(state => state.scorePopups)
+  const resolvedScorePopups = scorePopups ?? storeScorePopups
+  const cellSize = tileSize + gap
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -59,20 +85,20 @@ export function ParticleLayer() {
     if (!ctx) return
 
     const dpr = window.devicePixelRatio || 1
-    canvas.width = BOARD_W * dpr
-    canvas.height = BOARD_H * dpr
-    canvas.style.width = `${BOARD_W}px`
-    canvas.style.height = `${BOARD_H}px`
+    canvas.width = width * dpr
+    canvas.height = height * dpr
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
     ctx.scale(dpr, dpr)
 
     let prevLen = 0
     const loop = () => {
-      const particles = useGameStore.getState().particles
-      const len = particles.length
+      const activeParticles = particles ?? useGameStore.getState().particles
+      const len = activeParticles.length
       if (len > 0) {
-        drawParticles(ctx, particles, Date.now())
+        drawParticles(ctx, activeParticles, Date.now(), width, height, cellSize, tileSize)
       } else if (prevLen > 0) {
-        ctx.clearRect(0, 0, BOARD_W, BOARD_H)
+        ctx.clearRect(0, 0, width, height)
       }
       prevLen = len
       rafRef.current = requestAnimationFrame(loop)
@@ -82,7 +108,7 @@ export function ParticleLayer() {
     return () => {
       cancelAnimationFrame(rafRef.current)
     }
-  }, [])
+  }, [cellSize, height, particles, tileSize, width])
 
   return (
     <div
@@ -100,9 +126,9 @@ export function ParticleLayer() {
         }}
       />
 
-      {scorePopups.map(popup => {
-        const cx = popup.centerCol * CELL + TILE_SIZE / 2
-        const cy = popup.centerRow * CELL + TILE_SIZE / 2
+      {resolvedScorePopups.map(popup => {
+        const cx = popup.centerCol * cellSize + tileSize / 2
+        const cy = popup.centerRow * cellSize + tileSize / 2
         const isBig = popup.tier === 'big'
         return (
           <div

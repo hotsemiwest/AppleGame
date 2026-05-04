@@ -6,12 +6,14 @@ import { TILE_COLORS, BOARD_BG, C } from '../theme/tokens'
 import { Tile } from './Tile'
 import { SegmentedControl } from './SegmentedControl'
 import { SelectionBox, SelectionBoxHandle } from './SelectionBox'
+import { ParticleLayer } from './ParticleLayer'
 import { useDragSelect } from '../hooks/useDragSelect'
 import { normalizeRect, sumRect, isValidSelection, clearRect } from '../utils/gameLogic'
 import { Board, SelectionRect, Particle } from '../types/game'
 import { buildParticles } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { generateBoardWithSize } from '../utils/boardGenerator'
+import { playPopSound } from '../utils/sound'
 
 const PREVIEW_COLS = 6
 const PREVIEW_ROWS = 10
@@ -81,11 +83,13 @@ export function SettingsModal({ onClose }: Props) {
     const { newBoard, cleared } = clearRect(previewBoard, rect)
     setPreviewBoard(newBoard as Board)
     const [particles, duration] = buildParticles(cleared, false)
+    const tier = particles[0]?.tier
+    if (soundEnabled && tier) playPopSound(tier)
     setPreviewParticles(prev => [...prev, ...particles])
     setTimeout(() => {
       setPreviewParticles(prev => prev.filter(p => !particles.some(np => np.id === p.id)))
     }, duration + 400)
-  }, [previewBoard])
+  }, [previewBoard, soundEnabled])
 
   const onPreviewCancel = useCallback(() => selRef.current?.hide(), [])
 
@@ -187,37 +191,14 @@ export function SettingsModal({ onClose }: Props) {
                 showSum={showDragSelectionSum}
                 showRangeColor={showDragSelectionRangeColor}
               />
-              <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 20, overflow: 'visible' }}>
-                {previewParticles.map(p => {
-                  const cx = p.col * CELL_S + TILE_S / 2
-                  const cy = p.row * CELL_S + TILE_S / 2
-                  const angleRad = (p.angle * Math.PI) / 180
-                  const dx = Math.cos(angleRad) * p.distance
-                  const dy = Math.sin(angleRad) * p.distance
-                  const half = p.size / 2
-                  const glow = p.tier !== 'normal' ? `0 0 ${p.tier === 'big' ? p.size * 2 : p.size * 1.2}px ${p.color}` : 'none'
-                  return (
-                    <div
-                      key={p.id}
-                      className="particle"
-                      style={{
-                        position: 'absolute',
-                        left: cx - half,
-                        top: cy - half,
-                        width: p.size,
-                        height: p.size,
-                        borderRadius: '50%',
-                        background: p.color,
-                        boxShadow: glow,
-                        '--dx': `${dx}px`,
-                        '--dy': `${dy}px`,
-                        '--dur': `${p.duration}ms`,
-                        animationDelay: `${p.delay ?? 0}ms`,
-                      } as React.CSSProperties}
-                    />
-                  )
-                })}
-              </div>
+              <ParticleLayer
+                particles={previewParticles}
+                scorePopups={[]}
+                width={PREVIEW_W}
+                height={PREVIEW_H}
+                tileSize={TILE_S}
+                gap={GAP_S}
+              />
             </div>
           </div>
 
