@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { C } from '../theme/tokens'
+import { useThemeStore } from '../store/themeStore'
+import { playCountdownSound } from '../utils/sound'
 
 interface Props {
   onFinish: () => void
@@ -7,8 +9,10 @@ interface Props {
 
 export function Countdown({ onFinish }: Props) {
   const [count, setCount] = useState(3)
+  const soundEnabled = useThemeStore(s => s.soundEnabled)
 
   useEffect(() => {
+    if (soundEnabled) playCountdownSound(count)
     const id = setTimeout(() => {
       if (count > 1) {
         setCount(c => c - 1)
@@ -17,7 +21,7 @@ export function Countdown({ onFinish }: Props) {
       }
     }, 1000)
     return () => clearTimeout(id)
-  }, [count, onFinish])
+  }, [count, onFinish, soundEnabled])
 
   return (
     <div

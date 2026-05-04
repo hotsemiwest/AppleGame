@@ -16,6 +16,7 @@ interface ThemeState {
   showDragSelectionSum: boolean
   showDragSelectionRangeColor: boolean
   devMode: boolean
+  soundEnabled: boolean
   setTheme: (t: Theme) => void
   setTileShape: (s: TileShape) => void
   setTileColor: (id: TileColorId) => void
@@ -25,13 +26,14 @@ interface ThemeState {
   setShowDragSelectionSum: (v: boolean) => void
   setShowDragSelectionRangeColor: (v: boolean) => void
   setDevMode: (v: boolean) => void
+  setSoundEnabled: (v: boolean) => void
   applySettings: (s: Record<string, unknown>) => void
   reloadFromLocal: () => void
 }
 
 const KEY = 'applebox_theme'
 
-type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDifficulty' | 'soloBoardDifficulty' | 'showDragSelectionSum' | 'showDragSelectionRangeColor' | 'devMode'>
+type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDifficulty' | 'soloBoardDifficulty' | 'showDragSelectionSum' | 'showDragSelectionRangeColor' | 'devMode' | 'soundEnabled'>
 
 const THEMES: Theme[] = ['light', 'dark']
 const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square', '8bit']
@@ -47,6 +49,7 @@ function validate(saved: Record<string, unknown>): Partial<Saved> {
   if (typeof saved.showDragSelectionSum === 'boolean') result.showDragSelectionSum = saved.showDragSelectionSum
   if (typeof saved.showDragSelectionRangeColor === 'boolean') result.showDragSelectionRangeColor = saved.showDragSelectionRangeColor
   if (typeof saved.devMode === 'boolean') result.devMode = saved.devMode
+  if (typeof saved.soundEnabled === 'boolean') result.soundEnabled = saved.soundEnabled
   return result
 }
 
@@ -77,6 +80,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   showDragSelectionSum: true,
   showDragSelectionRangeColor: true,
   devMode: false,
+  soundEnabled: true,
   ...load(),
 
   setTheme:                       (theme)                        => { set({ theme });                        save({ theme }) },
@@ -88,6 +92,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   setShowDragSelectionSum:        (showDragSelectionSum)         => { set({ showDragSelectionSum });         save({ showDragSelectionSum }) },
   setShowDragSelectionRangeColor: (showDragSelectionRangeColor)  => { set({ showDragSelectionRangeColor });  save({ showDragSelectionRangeColor }) },
   setDevMode:                     (devMode)                      => { set({ devMode });                      save({ devMode }) },
+  setSoundEnabled:                (soundEnabled)                 => { set({ soundEnabled });                 save({ soundEnabled }) },
 
   applySettings: (s) => {
     set(validate(s))

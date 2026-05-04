@@ -22,6 +22,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
+# huggingface_hub 임포트 전에 설정해야 적용됨
+MODELS_DIR = Path(__file__).resolve().parent / "models"
+HF_CACHE_DIR = MODELS_DIR / "_hf_cache"
+os.environ.setdefault("HF_HOME", str(HF_CACHE_DIR / "_hf_home"))
+os.environ["HF_HUB_ENABLE_HF_TRANSFER"] = "0"  # Rust 다운로더 비활성화 (Permission denied 방지)
+
 import numpy as np
 from fastapi import Depends, FastAPI, HTTPException, Request, Security
 from fastapi.middleware.cors import CORSMiddleware
@@ -30,9 +36,6 @@ from pydantic import BaseModel, Field, field_validator
 from sb3_contrib import MaskablePPO
 
 from .fruit_box_env import FruitBoxEnv
-
-MODELS_DIR = Path(__file__).resolve().parent / "models"
-HF_CACHE_DIR = MODELS_DIR / "_hf_cache"
 MAX_MOVE_LIMIT = 1000
 MAX_CACHED_MODELS = 5
 
@@ -120,6 +123,7 @@ def _download_hf_model(hf_path: str) -> str:
         raise RuntimeError("huggingface_hub 미설치")
 
     HF_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    Path(os.environ["HF_HOME"]).mkdir(parents=True, exist_ok=True)
     print(f"[server] 다운로드 중: {repo_id}/{filename}")
     local_path = hf_hub_download(repo_id=repo_id, filename=filename, local_dir=str(HF_CACHE_DIR))
     _hf_download_cache[hf_path] = local_path

@@ -38,6 +38,7 @@ export function SettingsModal({ onClose }: Props) {
     showDragSelectionSum,
     showDragSelectionRangeColor,
     devMode,
+    soundEnabled,
     setTheme,
     setTileShape,
     setTileColor,
@@ -47,6 +48,7 @@ export function SettingsModal({ onClose }: Props) {
     setShowDragSelectionSum,
     setShowDragSelectionRangeColor,
     setDevMode,
+    setSoundEnabled,
   } = useThemeStore()
 
   const { user } = useAuthStore()
@@ -269,6 +271,19 @@ export function SettingsModal({ onClose }: Props) {
                     />
                   ))}
                 </div>
+              </div>
+
+              {/* 효과음 */}
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">효과음</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on',  label: '🔊 켜기' },
+                    { value: 'off', label: '🔇 끄기' },
+                  ]}
+                  value={soundEnabled ? 'on' : 'off'}
+                  onChange={v => setSoundEnabled(v === 'on')}
+                />
               </div>
             </>}
 

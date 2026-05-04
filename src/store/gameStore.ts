@@ -7,6 +7,7 @@ import { PARTICLE_COLORS } from '../theme/tokens'
 import { generateBoardForDifficulty, getBoardDifficulty } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { useThemeStore } from './themeStore'
+import { playPopSound } from '../utils/sound'
 import { AI_API_BASE } from '../lib/aiApi'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
@@ -264,6 +265,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     const [newParticles, duration] = buildParticles(cells, false)
     const count = cells.length
     const tier = getTier(count)
+    if (useThemeStore.getState().soundEnabled) playPopSound(tier)
     const ts = Date.now()
 
     const newPopups: ScorePopup[] = []
