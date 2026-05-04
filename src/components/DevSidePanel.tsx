@@ -10,6 +10,18 @@ type ModelRun = { name: string; models: ModelEntry[] }
 
 const PANEL_WIDTH = 264
 
+function useWindowWidth() {
+  const [width, setWidth] = useState(() =>
+    typeof window !== 'undefined' ? window.innerWidth : 1400
+  )
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth)
+    window.addEventListener('resize', handler)
+    return () => window.removeEventListener('resize', handler)
+  }, [])
+  return width
+}
+
 function Divider() {
   return <div style={{ height: 1, background: C.borderFaint, margin: '12px 0' }} />
 }
@@ -38,6 +50,11 @@ export function DevSidePanel() {
   const [modelsLoading, setModelsLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const windowWidth = useWindowWidth()
+  const isWide = windowWidth >= 1200
+  const isNarrow = windowWidth < 768
 
   const fetchModels = useCallback(async () => {
     setModelsLoading(true)
@@ -101,41 +118,32 @@ export function DevSidePanel() {
 
   if (!devMode || !user) return null
 
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        right: 16,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        width: PANEL_WIDTH,
-        maxHeight: '85vh',
-        overflowY: 'auto',
-        background: C.surface,
-        border: `1px solid ${C.borderStrong}`,
-        borderRadius: 16,
-        zIndex: 50,
-        padding: 16,
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0,
-      }}
-    >
-      {/* 헤더 */}
+  const panelBody = (showClose: boolean) => (
+    <>
       <div className="flex items-center gap-2 mb-3">
         <span className="text-base">🛠️</span>
         <span className="font-bold text-sm" style={{ color: C.textPrimary }}>개발자 패널</span>
-        {aiSolving && (
-          <span
-            className="ml-auto text-xs font-semibold px-2 py-0.5 rounded-full animate-pulse"
-            style={{ background: '#3b82f620', color: '#60a5fa', border: '1px solid #3b82f640' }}
-          >
-            AI 실행 중
-          </span>
-        )}
+        <div className="ml-auto flex items-center gap-2">
+          {aiSolving && (
+            <span
+              className="text-xs font-semibold px-2 py-0.5 rounded-full animate-pulse"
+              style={{ background: '#3b82f620', color: '#60a5fa', border: '1px solid #3b82f640' }}
+            >
+              AI 실행 중
+            </span>
+          )}
+          {showClose && (
+            <button
+              onClick={() => setIsOpen(false)}
+              className="rounded px-2 py-0.5 text-xs transition-all active:scale-95"
+              style={{ color: C.textSub, background: C.surfaceRaised, border: `1px solid ${C.borderFaint}` }}
+            >
+              ✕
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* 보드 통계 */}
       <Label>보드 통계</Label>
       {isPlaying ? (
         <div className="grid grid-cols-3 gap-2 mb-1">
@@ -160,27 +168,20 @@ export function DevSidePanel() {
 
       <Divider />
 
-      {/* 보드 내보내기 */}
       <Label>보드 데이터</Label>
       <button
         onClick={handleExport}
         disabled={!isPlaying}
         className="w-full rounded-lg py-2 text-xs font-semibold transition-all active:scale-95 disabled:opacity-40"
-        style={{
-          background: C.surfaceRaised,
-          border: `1px solid ${C.borderFaint}`,
-          color: C.textPrimary,
-        }}
+        style={{ background: C.surfaceRaised, border: `1px solid ${C.borderFaint}`, color: C.textPrimary }}
       >
         {copied ? '✅ 클립보드에 복사됨' : '📋 JSON으로 내보내기'}
       </button>
 
       <Divider />
 
-      {/* AI 데모 */}
       <Label>AI 데모</Label>
       <div className="flex flex-col gap-2">
-        {/* 런 선택 */}
         <div className="flex gap-1">
           <select
             value={selectedRun}
@@ -208,18 +209,12 @@ export function DevSidePanel() {
             disabled={modelsLoading}
             title="새로고침"
             className="rounded-lg px-2 py-2 text-xs transition-all active:scale-95 disabled:opacity-40"
-            style={{
-              background: C.surfaceRaised,
-              border: `1px solid ${C.borderFaint}`,
-              color: C.textSub,
-              flexShrink: 0,
-            }}
+            style={{ background: C.surfaceRaised, border: `1px solid ${C.borderFaint}`, color: C.textSub, flexShrink: 0 }}
           >
             {modelsLoading ? '⏳' : '↺'}
           </button>
         </div>
 
-        {/* 체크포인트 선택 */}
         <select
           value={modelPath}
           onChange={e => setModelPath(e.target.value)}
@@ -250,20 +245,14 @@ export function DevSidePanel() {
             onClick={handleAIDemo}
             disabled={!isPlaying}
             className="w-full rounded-lg py-2 text-xs font-bold transition-all active:scale-95 disabled:opacity-40"
-            style={{
-              background: C.surfaceRaised,
-              border: `1px solid ${C.borderFaint}`,
-              color: C.textPrimary,
-            }}
+            style={{ background: C.surfaceRaised, border: `1px solid ${C.borderFaint}`, color: C.textPrimary }}
           >
             🤖 AI 데모 시작
           </button>
         )}
 
         {!isPlaying && (
-          <div className="text-xs" style={{ color: C.textSub }}>
-            게임을 시작한 뒤 실행하세요.
-          </div>
+          <div className="text-xs" style={{ color: C.textSub }}>게임을 시작한 뒤 실행하세요.</div>
         )}
 
         {aiError && (
@@ -279,6 +268,185 @@ export function DevSidePanel() {
           서버: <code className="px-1 rounded" style={{ background: C.surfaceRaised }}>uvicorn ai_solver.server:app --port 8000</code>
         </div>
       </div>
-    </div>
+    </>
+  )
+
+  // ─── Wide (≥1200px): 항상 표시되는 우측 고정 패널 ─────────────────────────
+  if (isWide) {
+    return (
+      <div
+        style={{
+          position: 'fixed',
+          right: 16,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          width: PANEL_WIDTH,
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          background: C.surface,
+          border: `1px solid ${C.borderStrong}`,
+          borderRadius: 16,
+          zIndex: 50,
+          padding: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0,
+        }}
+      >
+        {panelBody(false)}
+      </div>
+    )
+  }
+
+  // ─── Narrow (<768px): FAB + 바텀시트 ─────────────────────────────────────
+  if (isNarrow) {
+    return (
+      <>
+        <button
+          onClick={() => setIsOpen(v => !v)}
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            right: 24,
+            width: 44,
+            height: 44,
+            borderRadius: '50%',
+            background: C.surface,
+            border: `1px solid ${C.borderStrong}`,
+            zIndex: 53,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 18,
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.3)',
+          }}
+        >
+          {aiSolving ? <span className="animate-pulse" style={{ fontSize: 14 }}>⚡</span> : '🛠️'}
+        </button>
+
+        {isOpen && (
+          <>
+            <div
+              onClick={() => setIsOpen(false)}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 51,
+                background: 'rgba(0,0,0,0.4)',
+                backdropFilter: 'blur(2px)',
+                animation: 'dev-fade-in 0.2s ease both',
+              }}
+            />
+            <div
+              style={{
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                maxHeight: '80vh',
+                overflowY: 'auto',
+                background: C.surface,
+                borderTop: `1px solid ${C.borderStrong}`,
+                borderRadius: '16px 16px 0 0',
+                zIndex: 52,
+                padding: '12px 16px 28px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 0,
+                animation: 'dev-slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1) both',
+              }}
+            >
+              <div
+                style={{
+                  width: 36,
+                  height: 4,
+                  borderRadius: 2,
+                  background: C.borderStrong,
+                  margin: '0 auto 16px',
+                  flexShrink: 0,
+                }}
+              />
+              {panelBody(true)}
+            </div>
+          </>
+        )}
+      </>
+    )
+  }
+
+  // ─── Medium (768–1199px): 우측 엣지 탭 + 슬라이드인 패널 ──────────────────
+  return (
+    <>
+      {/* 토글 탭 — 항상 우측 엣지에 표시 */}
+      <button
+        onClick={() => setIsOpen(v => !v)}
+        style={{
+          position: 'fixed',
+          right: isOpen ? PANEL_WIDTH : 0,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: 51,
+          padding: '14px 8px',
+          background: C.surface,
+          border: `1px solid ${C.borderStrong}`,
+          borderRight: 'none',
+          borderRadius: '8px 0 0 8px',
+          cursor: 'pointer',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        <span style={{ fontSize: 14 }}>🛠️</span>
+        {aiSolving && (
+          <div
+            className="animate-pulse"
+            style={{ width: 5, height: 5, borderRadius: '50%', background: '#60a5fa' }}
+          />
+        )}
+        <span
+          style={{
+            fontSize: 9,
+            color: C.textMuted,
+            writingMode: 'vertical-rl',
+            transform: 'rotate(180deg)',
+            letterSpacing: '0.08em',
+            fontWeight: 700,
+          }}
+        >
+          DEV
+        </span>
+        <span style={{ fontSize: 10, color: C.textSub }}>{isOpen ? '›' : '‹'}</span>
+      </button>
+
+      {/* 슬라이드인 패널 — 항상 DOM에 존재, right 값으로 위치 제어 */}
+      <div
+        style={{
+          position: 'fixed',
+          right: isOpen ? 0 : -PANEL_WIDTH,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          transition: 'right 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          width: PANEL_WIDTH,
+          maxHeight: '85vh',
+          overflowY: 'auto',
+          background: C.surface,
+          border: `1px solid ${C.borderStrong}`,
+          borderRight: 'none',
+          borderRadius: '16px 0 0 16px',
+          zIndex: 50,
+          padding: 16,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 0,
+          pointerEvents: isOpen ? 'auto' : 'none',
+        }}
+      >
+        {panelBody(true)}
+      </div>
+    </>
   )
 }
