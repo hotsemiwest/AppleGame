@@ -26,18 +26,17 @@ function getTargetSumRange(difficulty: number): [number, number] {
 }
 
 export function generateBoardForDifficulty(targetDifficulty: number): Board {
-  if (targetDifficulty === -1) return generateBoard() // Random difficulty
+  if (targetDifficulty === -1) return generateBoard()
 
   const [minSum, maxSum] = getTargetSumRange(targetDifficulty)
+  const MAX_ATTEMPTS = 2000
 
-  // Keep generating until we get a board in the target range
-  while (true) {
+  for (let i = 0; i < MAX_ATTEMPTS; i++) {
     const board = generateBoard()
     const sum = sumBoard(board)
-    if (sum >= minSum && sum <= maxSum) {
-      return board
-    }
+    if (sum >= minSum && sum <= maxSum) return board
   }
+  return generateBoard()
 }
 
 export function generateBoardWithSize(rows: number, cols: number): Board {

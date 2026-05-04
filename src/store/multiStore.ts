@@ -1,11 +1,45 @@
 import { create } from 'zustand'
 import type { RealtimeChannel } from '@supabase/supabase-js'
-import { Board, SelectionRect, GameMode, GAME_DURATION, MULTI_TIME_ATTACK_TARGET } from '../types/game'
+import { Board, CellRef, SelectionRect, GameMode, GAME_DURATION, MULTI_TIME_ATTACK_TARGET, ROWS, COLS } from '../types/game'
 import { generateBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { supabase, createMultiRoom, joinMultiRoom, startMultiGame, endMultiRoom } from '../lib/supabase'
 import { useAuthStore } from './authStore'
 import { useGameStore } from './gameStore'
+
+function isValidSelectionRect(rect: unknown): rect is SelectionRect {
+  if (typeof rect !== 'object' || rect === null) return false
+  const r = rect as Record<string, unknown>
+  return (
+    typeof r.startRow === 'number' && r.startRow >= 0 && r.startRow < ROWS &&
+    typeof r.startCol === 'number' && r.startCol >= 0 && r.startCol < COLS &&
+    typeof r.endRow   === 'number' && r.endRow   >= 0 && r.endRow   < ROWS &&
+    typeof r.endCol   === 'number' && r.endCol   >= 0 && r.endCol   < COLS
+  )
+}
+
+function isValidBroadcastBoard(board: unknown): board is Board {
+  if (!Array.isArray(board) || board.length !== ROWS) return false
+  for (const row of board) {
+    if (!Array.isArray(row) || row.length !== COLS) return false
+    for (const cell of row) {
+      if (cell !== null && (typeof cell !== 'number' || cell < 1 || cell > 9)) return false
+    }
+  }
+  return true
+}
+
+function isValidClearedCells(cells: unknown): cells is CellRef[] {
+  if (!Array.isArray(cells) || cells.length > ROWS * COLS) return false
+  for (const cell of cells) {
+    if (typeof cell !== 'object' || cell === null) return false
+    const { row, col, value } = cell as Record<string, unknown>
+    if (typeof row !== 'number' || typeof col !== 'number') return false
+    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return false
+    if (typeof value !== 'number' || value < 1 || value > 9) return false
+  }
+  return true
+}
 
 export type MultiPhase = 'off' | 'lobby' | 'waiting' | 'countdown' | 'playing' | 'ended'
 
@@ -57,7 +91,9 @@ function getMe() {
 }
 
 function generateRoomCode(): string {
-  return String(Math.floor(100000 + Math.random() * 900000))
+  const arr = new Uint32Array(1)
+  crypto.getRandomValues(arr)
+  return String(100000 + (arr[0] % 900000))
 }
 
 function subscribeChannel(roomCode: string) {
@@ -76,6 +112,9 @@ function subscribeChannel(roomCode: string) {
   channel
     .on('broadcast', { event: 'board' }, ({ payload }) => {
       const s = useMultiStore.getState()
+
+      if (!isValidBroadcastBoard(payload.board)) return
+
       const remoteBoard: Board = payload.board
 
       const mergedBoard: Board = (s.board && payload.reason !== 'deadlock')
@@ -84,23 +123,27 @@ function subscribeChannel(roomCode: string) {
           )
         : remoteBoard
 
-      // 동시 제거 충돌: 내 보드에서 이미 null인 셀을 상대도 제거했다면 → 호스트 우선 적용
-      // 호스트: 상대(게스트) 점수에서 중복 제거 셀만큼 차감
-      // 게스트: 내 점수에서 중복 제거 셀만큼 차감
+      const rawClearedCells = payload.cleared_cells
+      const clearedCells = isValidClearedCells(rawClearedCells) ? rawClearedCells : []
+
       const contested = payload.reason !== 'deadlock'
-        ? (payload.cleared_cells as { row: number; col: number }[] | undefined)
-            ?.filter(cell => s.board?.[cell.row]?.[cell.col] === null).length ?? 0
+        ? clearedCells.filter(cell => s.board?.[cell.row]?.[cell.col] === null).length
         : 0
 
+      const rawHostScore = payload.host_score
+      const rawGuestScore = payload.guest_score
+      const hostScore = typeof rawHostScore === 'number' && rawHostScore >= 0 ? rawHostScore : 0
+      const guestScore = typeof rawGuestScore === 'number' && rawGuestScore >= 0 ? rawGuestScore : 0
+
       const opponentScore = Math.max(0,
-        (s.isHost ? payload.guest_score : payload.host_score) - (s.isHost ? contested : 0)
+        (s.isHost ? guestScore : hostScore) - (s.isHost ? contested : 0)
       )
       const myScore = Math.max(0, s.myScore - (s.isHost ? 0 : contested))
 
       useMultiStore.setState({ board: mergedBoard, opponentScore, myScore })
 
-      if (payload.cleared_cells?.length) {
-        useGameStore.getState().spawnOpponentParticles(payload.cleared_cells)
+      if (clearedCells.length) {
+        useGameStore.getState().spawnOpponentParticles(clearedCells)
       }
 
       if (s.gameMode === 'time' && opponentScore >= MULTI_TIME_ATTACK_TARGET) {
@@ -115,9 +158,11 @@ function subscribeChannel(roomCode: string) {
     .on('broadcast', { event: 'countdown_start' }, ({ payload }) => {
       const s = useMultiStore.getState()
       if (s.phase !== 'waiting') return
+      if (!isValidBroadcastBoard(payload.board)) return
+      const gameMode: GameMode = payload.gameMode === 'time' ? 'time' : 'score'
       useMultiStore.setState({
         board: payload.board as Board,
-        gameMode: (payload.gameMode as GameMode) ?? 'score',
+        gameMode,
         phase: 'countdown',
         myScore: 0,
         opponentScore: 0,
@@ -128,10 +173,16 @@ function subscribeChannel(roomCode: string) {
     })
     .on('broadcast', { event: 'drag' }, ({ payload }) => {
       if (payload.player_id === myId) return
-      opponentDragCallback?.(payload.rect as SelectionRect | null)
+      const s = useMultiStore.getState()
+      if (s.opponentId && payload.player_id !== s.opponentId) return
+      const rect = payload.rect
+      if (rect !== null && rect !== undefined && !isValidSelectionRect(rect)) return
+      opponentDragCallback?.(rect as SelectionRect | null)
     })
     .on('broadcast', { event: 'leave' }, ({ payload }) => {
       if (payload.player_id === myId) return
+      const { opponentId } = useMultiStore.getState()
+      if (opponentId && payload.player_id !== opponentId) return
       const s = useMultiStore.getState()
       if (s.phase === 'playing' || s.phase === 'countdown') {
         endGame('me')
@@ -179,6 +230,7 @@ function subscribeChannel(roomCode: string) {
 
         // 게스트: 게임 시작 감지 (broadcast 못 받은 경우 fallback)
         if (!s.isHost && row.status === 'playing' && s.phase === 'waiting') {
+          if (!isValidBroadcastBoard(row.board)) return
           useMultiStore.setState({
             board: row.board as Board,
             phase: 'countdown',

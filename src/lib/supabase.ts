@@ -1,7 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const url = import.meta.env.VITE_SUPABASE_URL
-const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+const url: string = import.meta.env.VITE_SUPABASE_URL
+const key: string = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+
+if (!url || !key) {
+  throw new Error(
+    'Supabase 환경변수가 설정되지 않았습니다. VITE_SUPABASE_URL과 VITE_SUPABASE_PUBLISHABLE_KEY를 확인하세요.'
+  )
+}
 
 export const supabase = createClient(url, key)
 
@@ -18,9 +24,12 @@ export interface UserSettings {
 }
 
 export async function fetchUserSettings(): Promise<UserSettings | null> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
   const { data } = await supabase
     .from('user_settings')
     .select('settings')
+    .eq('user_id', user.id)
     .maybeSingle()
   return (data?.settings as UserSettings) ?? null
 }
@@ -99,7 +108,7 @@ export async function fetchTopTimeAttackScores(): Promise<TimeAttackEntry[]> {
 }
 
 export async function submitTimeAttackScore(displayName: string, timeSeconds: number): Promise<void> {
-  if (timeSeconds < 1) return
+  if (timeSeconds < 1 || timeSeconds > 3600) return
   const { error } = await supabase.rpc('submit_time_attack_score', {
     p_display_name: displayName,
     p_time_seconds: timeSeconds,

@@ -16,12 +16,14 @@ from __future__ import annotations
 
 import os
 import re
+import time
+from collections import defaultdict
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
-from fastapi import Depends, FastAPI, HTTPException, Security
+from fastapi import Depends, FastAPI, HTTPException, Request, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field, field_validator
@@ -32,17 +34,36 @@ from .fruit_box_env import FruitBoxEnv
 MODELS_DIR = Path(__file__).resolve().parent / "models"
 HF_CACHE_DIR = MODELS_DIR / "_hf_cache"
 MAX_MOVE_LIMIT = 1000
+MAX_CACHED_MODELS = 5
 
 _model_cache: dict[str, MaskablePPO] = {}
 _hf_download_cache: dict[str, str] = {}  # hf_path -> local_path
 
 _api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
+RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS", "10"))
+RATE_LIMIT_WINDOW = int(os.getenv("RATE_LIMIT_WINDOW", "60"))
+_rate_store: dict[str, list[float]] = defaultdict(list)
+
 
 def _verify_api_key(api_key: str | None = Security(_api_key_header)) -> None:
     required = os.getenv("AI_API_KEY")
     if required and api_key != required:
         raise HTTPException(status_code=401, detail="Invalid or missing API key")
+
+
+def _check_rate_limit(request: Request) -> None:
+    if not os.getenv("AI_API_KEY"):
+        return
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.monotonic()
+    if len(_rate_store) > 50_000:
+        _rate_store.clear()
+    window = _rate_store[client_ip]
+    _rate_store[client_ip] = [t for t in window if now - t < RATE_LIMIT_WINDOW]
+    if len(_rate_store[client_ip]) >= RATE_LIMIT_REQUESTS:
+        raise HTTPException(status_code=429, detail="Too many requests. Try again later.")
+    _rate_store[client_ip].append(now)
 
 
 def _list_hf_runs(repo_id: str) -> list[dict]:
@@ -115,6 +136,9 @@ def _resolve_path(path: str) -> str:
 
 def _load_model(path: str) -> MaskablePPO:
     if path not in _model_cache:
+        if len(_model_cache) >= MAX_CACHED_MODELS:
+            evict = next(iter(_model_cache))
+            del _model_cache[evict]
         _model_cache[path] = MaskablePPO.load(path, device="cpu")
     return _model_cache[path]
 
@@ -230,7 +254,7 @@ def list_models():
 
 
 @app.post("/solve", response_model=SolveResponse, dependencies=[Depends(_verify_api_key)])
-def solve(req: SolveRequest):
+def solve(req: SolveRequest, request: Request, _rl: None = Depends(_check_rate_limit)):
     raw_path = req.model_path or os.getenv("AI_MODEL_PATH")
     if not raw_path:
         raise HTTPException(
