@@ -4,7 +4,7 @@ import { useThemeStore } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 import { countSolutions } from '../utils/gameLogic'
 import { C } from '../theme/tokens'
-import { AI_API_BASE } from '../lib/aiApi'
+import { AI_API_BASE, aiHeaders } from '../lib/aiApi'
 
 type ModelEntry = { label: string; path: string }
 type ModelRun = { name: string; models: ModelEntry[] }
@@ -74,7 +74,7 @@ export function DevSidePanel() {
     setModelsLoading(true)
     setFetchError(null)
     try {
-      const resp = await fetch(`${AI_API_BASE}/models`)
+      const resp = await fetch(`${AI_API_BASE}/models`, { headers: aiHeaders() })
       if (!resp.ok) {
         setFetchError(`서버 오류 ${resp.status}`)
         return

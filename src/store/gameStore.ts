@@ -8,7 +8,7 @@ import { generateBoardForDifficulty, getBoardDifficulty } from '../utils/boardGe
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { useThemeStore } from './themeStore'
 import { playPopSound } from '../utils/sound'
-import { AI_API_BASE } from '../lib/aiApi'
+import { AI_API_BASE, aiHeaders } from '../lib/aiApi'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
 const TIME_ATTACK_BEST_KEY = 'timeAttackBest'
@@ -314,7 +314,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const numeric = board.map(row => row.map(cell => cell ?? 0))
       const resp = await fetch(`${AI_API_BASE}/solve`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: aiHeaders(),
         body: JSON.stringify({ board: numeric, model_path: modelPath }),
       })
       if (!resp.ok) {
