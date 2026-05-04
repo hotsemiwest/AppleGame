@@ -54,6 +54,7 @@ export function DevSidePanel() {
   const board = useGameStore(s => s.board)
   const score = useGameStore(s => s.score)
   const aiSolving = useGameStore(s => s.aiSolving)
+  const aiWaiting = useGameStore(s => s.aiWaiting)
   const runAISolver = useGameStore(s => s.runAISolver)
   const stopAISolver = useGameStore(s => s.stopAISolver)
 
@@ -295,7 +296,7 @@ export function DevSidePanel() {
             className="w-full rounded-lg py-2 text-xs font-bold transition-all active:scale-95"
             style={{ background: '#ef444418', border: '1px solid #ef444460', color: '#ef4444' }}
           >
-            ⏹ 중지
+            {aiWaiting ? '⏳ 서버 응답 대기 중...' : '⏹ 중지'}
           </button>
         ) : (
           <button

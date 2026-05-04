@@ -134,6 +134,7 @@ interface GameState {
   spawnOpponentParticles: (cells: CellRef[]) => void
   tick: () => void
   aiSolving: boolean
+  aiWaiting: boolean  // 서버 응답 대기 중 (모델 다운로드 포함)
   isAIGame: boolean
   runAISolver: (modelPath: string, moveDelayMs?: number) => Promise<void>
   stopAISolver: () => void
@@ -143,6 +144,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   board: [],
   score: 0,
   aiSolving: false,
+  aiWaiting: false,
   isAIGame: false,
   personalBest: loadPersonalBest(),
   personalBestTime: loadPersonalBestTime(),
@@ -306,28 +308,38 @@ export const useGameStore = create<GameState>((set, get) => ({
   runAISolver: async (modelPath: string, moveDelayMs = 400) => {
     if (get().aiSolving) return
     if (get().gamePhase !== 'playing') throw new Error('게임을 먼저 시작하세요.')
-    set({ aiSolving: true, isAIGame: true })
+    set({ aiSolving: true, aiWaiting: true, isAIGame: true })
 
     let moves: SelectionRect[]
     try {
       const board = get().board
       const numeric = board.map(row => row.map(cell => cell ?? 0))
-      const resp = await fetch(`${AI_API_BASE}/solve`, {
-        method: 'POST',
-        headers: aiHeaders(),
-        body: JSON.stringify({ board: numeric, model_path: modelPath }),
-      })
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 90_000)
+      let resp: Response
+      try {
+        resp = await fetch(`${AI_API_BASE}/solve`, {
+          method: 'POST',
+          headers: aiHeaders(),
+          body: JSON.stringify({ board: numeric, model_path: modelPath }),
+          signal: controller.signal,
+        })
+      } finally {
+        clearTimeout(timeout)
+      }
       if (!resp.ok) {
-        const err = await resp.json()
+        const err = await resp.json().catch(() => ({}))
         throw new Error(err.detail ?? `서버 오류 ${resp.status}`)
       }
       const data = await resp.json()
       moves = data.moves as SelectionRect[]
     } catch (e) {
-      set({ aiSolving: false })
+      set({ aiSolving: false, aiWaiting: false })
+      if ((e as Error).name === 'AbortError') throw new Error('서버 응답 시간 초과 (90초). 모델 다운로드 중일 수 있습니다.')
       throw e
     }
 
+    set({ aiWaiting: false })
     for (const move of moves) {
       if (!get().aiSolving) break
       await new Promise(r => setTimeout(r, moveDelayMs))
@@ -337,6 +349,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ aiSolving: false })
   },
 
-  stopAISolver: () => set({ aiSolving: false }),
+  stopAISolver: () => set({ aiSolving: false, aiWaiting: false }),
 
 }))
