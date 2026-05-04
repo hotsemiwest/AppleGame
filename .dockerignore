@@ -1,0 +1,11 @@
+node_modules/
+dist/
+src/
+.git/
+.env
+*.local
+ai_solver/models/
+ai_solver/runs/
+ai_solver/__pycache__/
+ai_solver/**/__pycache__/
+ai_solver/training_log.jsonl

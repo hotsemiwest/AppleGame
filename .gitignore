@@ -16,3 +16,7 @@ venv/
 ai_solver/runs/
 ai_solver/models/
 ai_solver/*.zip
+
+# env
+.env
+

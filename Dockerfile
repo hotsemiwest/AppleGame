@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# CPU-only torch (훨씬 작은 이미지, 추론에는 GPU 불필요)
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+COPY ai_solver/requirements-server.txt .
+RUN pip install --no-cache-dir -r requirements-server.txt
+
+COPY ai_solver/ ./ai_solver/
+
+RUN mkdir -p ai_solver/models
+
+EXPOSE 8000
+
+CMD ["uvicorn", "ai_solver.server:app", "--host", "0.0.0.0", "--port", "8000"]

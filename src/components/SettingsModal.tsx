@@ -215,7 +215,7 @@ export function SettingsModal({ onClose }: Props) {
               options={[
                 { value: 'decor',   label: '🎨 꾸미기' },
                 { value: 'feature', label: '⚙️ 기능' },
-                { value: 'dev',     label: '🛠️ 개발 모드' },
+                { value: 'dev',     label: '🛠️ 개발' },
               ]}
               value={settingsTab}
               onChange={v => setSettingsTab(v as 'decor' | 'feature' | 'dev')}
@@ -382,7 +382,7 @@ export function SettingsModal({ onClose }: Props) {
                     onChange={v => setDevMode(v === 'on')}
                   />
                   <div className="mt-1.5 text-[11px]" style={{ color: C.textMuted }}>
-                    보드 내보내기 등 개발/디버그 기능을 활성화합니다.
+                    AI 데모 / 보드 내보내기 등 개발&디버그 기능을 활성화합니다.
                   </div>
                 </div>
               ) : (

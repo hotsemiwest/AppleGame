@@ -4,6 +4,7 @@ import { useThemeStore } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 import { countSolutions } from '../utils/gameLogic'
 import { C } from '../theme/tokens'
+import { AI_API_BASE } from '../lib/aiApi'
 
 type ModelEntry = { label: string; path: string }
 type ModelRun = { name: string; models: ModelEntry[] }
@@ -59,7 +60,7 @@ export function DevSidePanel() {
   const fetchModels = useCallback(async () => {
     setModelsLoading(true)
     try {
-      const resp = await fetch('http://localhost:8000/models')
+      const resp = await fetch(`${AI_API_BASE}/models`)
       if (resp.ok) {
         const data = await resp.json()
         const runs: ModelRun[] = data.runs ?? []

@@ -7,6 +7,7 @@ import { PARTICLE_COLORS } from '../theme/tokens'
 import { generateBoardForDifficulty, getBoardDifficulty, getBoardDifficultyRange, sumBoard } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { useThemeStore } from './themeStore'
+import { AI_API_BASE } from '../lib/aiApi'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
 const TIME_ATTACK_BEST_KEY = 'timeAttackBest'
@@ -319,7 +320,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     try {
       const board = get().board
       const numeric = board.map(row => row.map(cell => cell ?? 0))
-      const resp = await fetch('http://localhost:8000/solve', {
+      const resp = await fetch(`${AI_API_BASE}/solve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ board: numeric, model_path: modelPath }),
