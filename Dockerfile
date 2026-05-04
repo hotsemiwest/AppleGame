@@ -10,10 +10,12 @@ RUN pip install --no-cache-dir -r requirements-server.txt
 
 COPY ai_solver/ ./ai_solver/
 
-RUN mkdir -p ai_solver/models && \
+RUN mkdir -p ai_solver/models hf_cache && \
     addgroup --system appgroup && \
     adduser --system --ingroup appgroup appuser && \
     chown -R appuser:appgroup /app
+
+ENV HF_HOME=/app/hf_cache
 
 USER appuser
 
