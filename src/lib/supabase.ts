@@ -5,6 +5,36 @@ const key = import.meta.env.VITE_SUPABASE_ANON_KEY
 
 export const supabase = createClient(url, key)
 
+export interface UserSettings {
+  theme?: string
+  tileShape?: string
+  tileColorId?: string
+  showHintCount?: boolean
+  showDifficulty?: boolean
+  soloBoardDifficulty?: number
+  showDragSelectionSum?: boolean
+  showDragSelectionRangeColor?: boolean
+  devMode?: boolean
+}
+
+export async function fetchUserSettings(): Promise<UserSettings | null> {
+  const { data } = await supabase
+    .from('user_settings')
+    .select('settings')
+    .maybeSingle()
+  return (data?.settings as UserSettings) ?? null
+}
+
+export async function upsertUserSettings(settings: UserSettings): Promise<void> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase.from('user_settings').upsert({
+    user_id: user.id,
+    settings,
+    updated_at: new Date().toISOString(),
+  })
+}
+
 export interface ScoreEntry {
   user_id: string
   display_name: string

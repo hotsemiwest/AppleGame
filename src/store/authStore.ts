@@ -1,8 +1,13 @@
 import { create } from 'zustand'
 import type { User } from '@supabase/supabase-js'
-import { supabase, updateDisplayName as apiUpdateDisplayName } from '../lib/supabase'
+import { supabase, updateDisplayName as apiUpdateDisplayName, fetchUserSettings } from '../lib/supabase'
 import { setPersonalBestPersistence, useGameStore } from './gameStore'
 import { useThemeStore } from './themeStore'
+
+async function restoreUserSettings() {
+  const settings = await fetchUserSettings()
+  if (settings) useThemeStore.getState().applySettings(settings as Record<string, unknown>)
+}
 
 async function restorePersonalBest(userId: string) {
   const { data } = await supabase
@@ -57,7 +62,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     supabase.auth.getSession().then(({ data: { session } }) => {
       const user = session?.user ?? null
       setPersonalBestPersistence(!!user)
-      if (user) { restorePersonalBest(user.id); restoreTimeAttackBest(user.id) }
+      if (user) {
+        restorePersonalBest(user.id)
+        restoreTimeAttackBest(user.id)
+        restoreUserSettings()
+      }
       set({
         user,
         displayName: user?.user_metadata?.display_name ?? null,
@@ -68,7 +77,14 @@ export const useAuthStore = create<AuthState>((set) => ({
     supabase.auth.onAuthStateChange((event, session) => {
       const user = session?.user ?? null
       setPersonalBestPersistence(!!user)
-      if (user) { restorePersonalBest(user.id); restoreTimeAttackBest(user.id) }
+      if (user) {
+        restorePersonalBest(user.id)
+        restoreTimeAttackBest(user.id)
+        restoreUserSettings()
+      }
+      if (event === 'SIGNED_OUT') {
+        useThemeStore.getState().reloadFromLocal()
+      }
       const update: Partial<AuthState> = {
         user,
         displayName: user?.user_metadata?.display_name ?? null,
@@ -98,7 +114,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   signOut: async () => {
     await supabase.auth.signOut()
     useGameStore.getState().resetPersonalBest()
-    useThemeStore.getState().setDevMode(false)
   },
 
   updateDisplayName: async (newName: string) => {

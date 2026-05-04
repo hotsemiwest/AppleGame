@@ -4,6 +4,7 @@ import {
   DEFAULT_THEME, DEFAULT_SHAPE, DEFAULT_COLOR, TILE_COLORS,
 } from '../theme/tokens'
 import { DIFFICULTY_CONFIG, isValidDifficulty } from '../config/difficultyConfig'
+import { upsertUserSettings } from '../lib/supabase'
 
 interface ThemeState {
   theme: Theme
@@ -24,6 +25,8 @@ interface ThemeState {
   setShowDragSelectionSum: (v: boolean) => void
   setShowDragSelectionRangeColor: (v: boolean) => void
   setDevMode: (v: boolean) => void
+  applySettings: (s: Record<string, unknown>) => void
+  reloadFromLocal: () => void
 }
 
 const KEY = 'applebox_theme'
@@ -33,28 +36,35 @@ type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintC
 const THEMES: Theme[] = ['light', 'dark']
 const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square', '8bit']
 
+function validate(saved: Record<string, unknown>): Partial<Saved> {
+  const result: Partial<Saved> = {}
+  if (THEMES.includes(saved.theme as Theme)) result.theme = saved.theme as Theme
+  if (TILE_SHAPES.includes(saved.tileShape as TileShape)) result.tileShape = saved.tileShape as TileShape
+  if (TILE_COLORS.some(c => c.id === saved.tileColorId)) result.tileColorId = saved.tileColorId as TileColorId
+  if (typeof saved.showHintCount === 'boolean') result.showHintCount = saved.showHintCount
+  if (typeof saved.showDifficulty === 'boolean') result.showDifficulty = saved.showDifficulty
+  if (isValidDifficulty(saved.soloBoardDifficulty as number)) result.soloBoardDifficulty = saved.soloBoardDifficulty as number
+  if (typeof saved.showDragSelectionSum === 'boolean') result.showDragSelectionSum = saved.showDragSelectionSum
+  if (typeof saved.showDragSelectionRangeColor === 'boolean') result.showDragSelectionRangeColor = saved.showDragSelectionRangeColor
+  if (typeof saved.devMode === 'boolean') result.devMode = saved.devMode
+  return result
+}
+
 function load(): Partial<Saved> {
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}') as Partial<Saved>
-
-    return {
-      theme: THEMES.includes(saved.theme as Theme) ? saved.theme : DEFAULT_THEME,
-      tileShape: TILE_SHAPES.includes(saved.tileShape as TileShape) ? saved.tileShape : DEFAULT_SHAPE,
-      tileColorId: TILE_COLORS.some(color => color.id === saved.tileColorId) ? saved.tileColorId : DEFAULT_COLOR,
-      showHintCount: typeof saved.showHintCount === 'boolean' ? saved.showHintCount : true,
-      showDifficulty: typeof saved.showDifficulty === 'boolean' ? saved.showDifficulty : true,
-      soloBoardDifficulty: isValidDifficulty(saved.soloBoardDifficulty) ? saved.soloBoardDifficulty : DIFFICULTY_CONFIG.DEFAULT,
-      showDragSelectionSum: typeof saved.showDragSelectionSum === 'boolean' ? saved.showDragSelectionSum : true,
-      showDragSelectionRangeColor: typeof saved.showDragSelectionRangeColor === 'boolean' ? saved.showDragSelectionRangeColor : true,
-      devMode: typeof saved.devMode === 'boolean' ? saved.devMode : false,
-    }
+    return validate(JSON.parse(localStorage.getItem(KEY) ?? '{}'))
   } catch {
     return {}
   }
 }
 
+let dbSaveTimer: ReturnType<typeof setTimeout> | null = null
+
 function save(patch: Partial<Saved>) {
-  try { localStorage.setItem(KEY, JSON.stringify({ ...load(), ...patch })) } catch {}
+  const merged = { ...load(), ...patch }
+  try { localStorage.setItem(KEY, JSON.stringify(merged)) } catch {}
+  if (dbSaveTimer) clearTimeout(dbSaveTimer)
+  dbSaveTimer = setTimeout(() => { upsertUserSettings(merged).catch(() => {}) }, 500)
 }
 
 export const useThemeStore = create<ThemeState>((set) => ({
@@ -78,4 +88,12 @@ export const useThemeStore = create<ThemeState>((set) => ({
   setShowDragSelectionSum:        (showDragSelectionSum)         => { set({ showDragSelectionSum });         save({ showDragSelectionSum }) },
   setShowDragSelectionRangeColor: (showDragSelectionRangeColor)  => { set({ showDragSelectionRangeColor });  save({ showDragSelectionRangeColor }) },
   setDevMode:                     (devMode)                      => { set({ devMode });                      save({ devMode }) },
+
+  applySettings: (s) => {
+    set(validate(s))
+  },
+
+  reloadFromLocal: () => {
+    set(validate(load() as Record<string, unknown>))
+  },
 }))
