@@ -104,7 +104,18 @@ export function SettingsModal({ onClose }: Props) {
     return () => document.removeEventListener('keydown', handler)
   }, [onClose])
 
+  useEffect(() => {
+    if (!user && settingsTab === 'dev') {
+      setSettingsTab('decor')
+    }
+  }, [user, settingsTab])
+
   const difficultyLabel = getDifficultyLabel(soloBoardDifficulty)
+  const settingsTabOptions = [
+    { value: 'decor', label: '🎨 꾸미기' },
+    { value: 'feature', label: '⚙️ 기능' },
+    ...(user ? [{ value: 'dev', label: '🛠️ 개발' }] : []),
+  ]
 
   return createPortal(
     <div
@@ -214,11 +225,7 @@ export function SettingsModal({ onClose }: Props) {
           <div className="flex-1 flex flex-col gap-5">
             {/* 탭 스위치 */}
             <SegmentedControl
-              options={[
-                { value: 'decor',   label: '🎨 꾸미기' },
-                { value: 'feature', label: '⚙️ 기능' },
-                { value: 'dev',     label: '🛠️ 개발' },
-              ]}
+              options={settingsTabOptions}
               value={settingsTab}
               onChange={v => setSettingsTab(v as 'decor' | 'feature' | 'dev')}
             />
@@ -273,6 +280,10 @@ export function SettingsModal({ onClose }: Props) {
                 </div>
               </div>
 
+            </>}
+
+            {settingsTab === 'feature' && <>
+
               {/* 효과음 */}
               <div>
                 <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">효과음</div>
@@ -285,9 +296,7 @@ export function SettingsModal({ onClose }: Props) {
                   onChange={v => setSoundEnabled(v === 'on')}
                 />
               </div>
-            </>}
 
-            {settingsTab === 'feature' && <>
               <div>
                 <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">드래그 선택 합계 표시</div>
                 <SegmentedControl
@@ -336,12 +345,15 @@ export function SettingsModal({ onClose }: Props) {
                 />
               </div>
 
+            </>}
+
+            {settingsTab === 'dev' && user && <>
               <div>
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold">싱글 게임 난이도</div>
                   <div className="text-sm font-semibold" style={{ color: C.textPrimary }}>{difficultyLabel}</div>
                 </div>
-                
+
                 {/* 랜덤 vs 난이도 선택 토글 */}
                 <div className="mb-3">
                   <SegmentedControl
@@ -382,29 +394,20 @@ export function SettingsModal({ onClose }: Props) {
                 )}
               </div>
 
-            </>}
-
-            {settingsTab === 'dev' && <>
-              {user ? (
-                <div>
-                  <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">개발자 모드</div>
-                  <SegmentedControl
-                    options={[
-                      { value: 'on',  label: '✅ 켜기' },
-                      { value: 'off', label: '❌ 끄기' },
-                    ]}
-                    value={devMode ? 'on' : 'off'}
-                    onChange={v => setDevMode(v === 'on')}
-                  />
-                  <div className="mt-1.5 text-[11px]" style={{ color: C.textMuted }}>
-                    AI 데모 / 보드 내보내기 등 개발&디버그 기능을 활성화합니다.
-                  </div>
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">개발자 모드</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'on', label: '✅ 켜기' },
+                    { value: 'off', label: '❌ 끄기' },
+                  ]}
+                  value={devMode ? 'on' : 'off'}
+                  onChange={v => setDevMode(v === 'on')}
+                />
+                <div className="mt-1.5 text-[11px]" style={{ color: C.textMuted }}>
+                  AI 데모 / 보드 내보내기 등 개발&디버그 기능을 활성화합니다.
                 </div>
-              ) : (
-                <div className="text-sm" style={{ color: C.textMuted }}>
-                  개발자 모드는 로그인 후 사용할 수 있습니다.
-                </div>
-              )}
+              </div>
             </>}
           </div>
 
