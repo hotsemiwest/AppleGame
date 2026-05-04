@@ -14,4 +14,4 @@ RUN mkdir -p ai_solver/models
 
 EXPOSE 8000
 
-CMD ["uvicorn", "ai_solver.server:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["sh", "-c", "uvicorn ai_solver.server:app --host 0.0.0.0 --port ${PORT:-8000}"]
