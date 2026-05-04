@@ -4,7 +4,7 @@ import { useThemeStore } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 import { countSolutions } from '../utils/gameLogic'
 import { C } from '../theme/tokens'
-import { AI_API_BASE, aiHeaders } from '../lib/aiApi'
+import { AI_API_BASE } from '../lib/aiApi'
 
 type ModelEntry = { label: string; path: string }
 type ModelRun = { name: string; models: ModelEntry[] }
