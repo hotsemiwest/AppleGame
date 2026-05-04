@@ -6,8 +6,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import json
 import os
+import statistics
 import time
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -16,6 +19,7 @@ from sb3_contrib import MaskablePPO
 from sb3_contrib.common.maskable.callbacks import MaskableEvalCallback
 from sb3_contrib.common.wrappers import ActionMasker
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback
+from stable_baselines3.common.logger import configure as sb3_configure
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 from .fruit_box_env import FruitBoxEnv, RewardConfig
@@ -140,6 +144,8 @@ def main():
             device=device,
         )
 
+    model.set_logger(sb3_configure(str(log_dir), ["stdout", "csv", "tensorboard"]))
+
     checkpoint_cb = CheckpointCallback(
         save_freq=max(args.checkpoint_every // args.n_envs, 1),
         save_path=str(model_dir),
@@ -170,6 +176,87 @@ def main():
     print(f"Saved final model -> {final_path}")
     print(f"TensorBoard logs    -> {log_dir}")
     print(f"Best model          -> {model_dir / 'best'}")
+
+    _save_training_record(args, run_name, model, reward_cfg, final_path, model_dir)
+
+
+def _save_training_record(args, run_name, model, reward_cfg, final_path, model_dir):
+    """Run a quick post-training evaluation and append results to training_log.jsonl."""
+    from sb3_contrib.common.wrappers import ActionMasker
+
+    print("\nRunning post-training evaluation (50 episodes)...")
+    eval_env = FruitBoxEnv(reward_config=reward_cfg)
+    rng = np.random.default_rng(seed=9999)
+    scores, moves_list, remaining_list, clears = [], [], [], 0
+
+    for _ in range(50):
+        obs, _ = eval_env.reset(seed=int(rng.integers(0, 2**31 - 1)))
+        done = False
+        moves = 0
+        while not done:
+            mask = eval_env.action_masks()
+            if not mask.any():
+                break
+            action, _ = model.predict(obs, action_masks=mask, deterministic=True)
+            obs, _, terminated, truncated, info = eval_env.step(int(action))
+            moves += 1
+            done = terminated or truncated
+        scores.append(eval_env.score)
+        moves_list.append(moves)
+        remaining_list.append(int((eval_env.board != 0).sum()))
+        if eval_env.score > 0 and int((eval_env.board != 0).sum()) == 0:
+            clears += 1
+
+    best_model_path = str(model_dir / "best" / "best_model.zip")
+    record = {
+        "run_name": run_name,
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "hyperparams": {
+            "timesteps": args.timesteps,
+            "n_envs": args.n_envs,
+            "learning_rate": args.learning_rate,
+            "n_steps": args.n_steps,
+            "batch_size": args.batch_size,
+            "gamma": args.gamma,
+            "gae_lambda": args.gae_lambda,
+            "ent_coef": args.ent_coef,
+            "clip_range": args.clip_range,
+            "seed": args.seed,
+        },
+        "reward_config": {
+            "nine_bonus": reward_cfg.nine_bonus,
+            "eight_bonus": reward_cfg.eight_bonus,
+            "small_clear_bonus": reward_cfg.small_clear_bonus,
+            "large_clear_penalty": reward_cfg.large_clear_penalty,
+            "leftover_penalty": reward_cfg.leftover_penalty,
+            "all_clear_bonus": reward_cfg.all_clear_bonus,
+        },
+        "eval_episodes": 50,
+        "results": {
+            "mean_score": round(statistics.mean(scores), 2),
+            "std_score": round(statistics.pstdev(scores), 2),
+            "min_score": min(scores),
+            "max_score": max(scores),
+            "mean_moves": round(statistics.mean(moves_list), 2),
+            "mean_remaining": round(statistics.mean(remaining_list), 2),
+            "all_clear_rate": round(clears / 50, 4),
+        },
+        "paths": {
+            "final_model": str(final_path),
+            "best_model": best_model_path if Path(best_model_path).exists() else None,
+        },
+    }
+
+    log_path = ROOT / "training_log.jsonl"
+    with open(log_path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    print(f"\n=== Post-training Eval (50 eps) ===")
+    print(f"Mean score:     {record['results']['mean_score']} ± {record['results']['std_score']}")
+    print(f"Min / Max:      {record['results']['min_score']} / {record['results']['max_score']}")
+    print(f"Mean remaining: {record['results']['mean_remaining']}")
+    print(f"All-clear rate: {clears}/50 ({record['results']['all_clear_rate']*100:.1f}%)")
+    print(f"Log appended -> {log_path}")
 
 
 if __name__ == "__main__":
