@@ -336,14 +336,6 @@ export function DevSidePanel() {
           {fetchError}
         </div>
       )}
-
-      {/* 서버 URL */}
-      <div className="flex items-center gap-1.5 mt-1.5" style={{ color: C.textSub }}>
-        <span style={{ fontSize: 10 }}>🔗</span>
-        <span className="text-xs truncate" style={{ fontSize: 10 }}>
-          {AI_API_BASE.replace('https://', '')}
-        </span>
-      </div>
     </>
   )
 
