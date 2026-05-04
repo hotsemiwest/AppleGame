@@ -50,7 +50,7 @@ export function SettingsModal({ onClose }: Props) {
   } = useThemeStore()
 
   const { user } = useAuthStore()
-  const [settingsTab, setSettingsTab] = useState<'decor' | 'feature'>('decor')
+  const [settingsTab, setSettingsTab] = useState<'decor' | 'feature' | 'dev'>('decor')
   const [previewBoard, setPreviewBoard] = useState<Board>(generatePreviewBoard)
   const [previewParticles, setPreviewParticles] = useState<Particle[]>([])
   const previewRef = useRef<HTMLDivElement>(null)
@@ -215,9 +215,10 @@ export function SettingsModal({ onClose }: Props) {
               options={[
                 { value: 'decor',   label: '🎨 꾸미기' },
                 { value: 'feature', label: '⚙️ 기능' },
+                { value: 'dev',     label: '🛠️ 개발 모드' },
               ]}
               value={settingsTab}
-              onChange={v => setSettingsTab(v as 'decor' | 'feature')}
+              onChange={v => setSettingsTab(v as 'decor' | 'feature' | 'dev')}
             />
             <div className={`flex-1 border-t ${theme === 'light' ? 'border-gray-200' : 'border-gray-700'}`} />
             {settingsTab === 'decor' && <>
@@ -366,7 +367,10 @@ export function SettingsModal({ onClose }: Props) {
                 )}
               </div>
 
-              {user && (
+            </>}
+
+            {settingsTab === 'dev' && <>
+              {user ? (
                 <div>
                   <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">개발자 모드</div>
                   <SegmentedControl
@@ -380,6 +384,10 @@ export function SettingsModal({ onClose }: Props) {
                   <div className="mt-1.5 text-[11px]" style={{ color: C.textMuted }}>
                     보드 내보내기 등 개발/디버그 기능을 활성화합니다.
                   </div>
+                </div>
+              ) : (
+                <div className="text-sm" style={{ color: C.textMuted }}>
+                  개발자 모드는 로그인 후 사용할 수 있습니다.
                 </div>
               )}
             </>}
