@@ -62,6 +62,7 @@ export function DevSidePanel() {
   const [modelPath, setModelPath] = useState('')
   const [modelsLoading, setModelsLoading] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
+  const [fetchError, setFetchError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
 
@@ -71,19 +72,22 @@ export function DevSidePanel() {
 
   const fetchModels = useCallback(async () => {
     setModelsLoading(true)
+    setFetchError(null)
     try {
       const resp = await fetch(`${AI_API_BASE}/models`)
-      if (resp.ok) {
-        const data = await resp.json()
-        const runs: ModelRun[] = data.runs ?? []
-        setModelRuns(runs)
-        if (runs.length > 0) {
-          setSelectedRun(runs[0].name)
-          if (runs[0].models.length > 0) setModelPath(runs[0].models[0].path)
-        }
+      if (!resp.ok) {
+        setFetchError(`서버 오류 ${resp.status}`)
+        return
       }
-    } catch {
-      // 서버 미실행 상태면 조용히 무시
+      const data = await resp.json()
+      const runs: ModelRun[] = data.runs ?? []
+      setModelRuns(runs)
+      if (runs.length > 0) {
+        setSelectedRun(runs[0].name)
+        if (runs[0].models.length > 0) setModelPath(runs[0].models[0].path)
+      }
+    } catch (e) {
+      setFetchError(e instanceof Error ? e.message : '네트워크 오류')
     } finally {
       setModelsLoading(false)
     }
@@ -320,6 +324,16 @@ export function DevSidePanel() {
           style={{ background: '#ef444415', border: '1px solid #ef444440', color: '#ef4444' }}
         >
           {aiError}
+        </div>
+      )}
+
+      {/* fetch 에러 */}
+      {fetchError && (
+        <div
+          className="rounded-lg px-3 py-2 text-xs break-all mt-1"
+          style={{ background: '#f59e0b15', border: '1px solid #f59e0b40', color: '#f59e0b' }}
+        >
+          {fetchError}
         </div>
       )}
 

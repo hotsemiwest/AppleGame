@@ -32,13 +32,17 @@ _hf_download_cache: dict[str, str] = {}  # hf_path -> local_path
 
 
 def _list_hf_runs(repo_id: str) -> list[dict]:
-    """HF Hub 레포의 모든 .zip 파일을 런별로 그룹핑해서 반환."""
+    """HF Hub 레포의 모든 .zip 파일을 런별로 그룹핑해서 반환.
+    - 중첩 구조: <run_name>/best_model.zip  → 런 이름으로 그룹핑
+    - 평면 구조: best_model.zip (루트)       → 'uploaded' 런으로 표시
+    """
     try:
         from huggingface_hub import list_repo_files
         zip_files = sorted(
             [f for f in list_repo_files(repo_id) if f.endswith(".zip")],
             reverse=True,
         )
+        print(f"[server] HF Hub 파일 목록 ({repo_id}): {zip_files}")
     except Exception as e:
         print(f"[server] HF Hub 목록 조회 실패: {e}")
         return []
@@ -46,9 +50,15 @@ def _list_hf_runs(repo_id: str) -> list[dict]:
     runs: dict[str, list] = {}
     for f in zip_files:
         parts = f.split("/")
-        if len(parts) != 2:
+        if len(parts) == 1:
+            # 루트에 직접 올린 파일 (초기 수동 업로드)
+            model_file = parts[0]
+            run_name = "uploaded"
+        elif len(parts) == 2:
+            run_name, model_file = parts
+        else:
             continue
-        run_name, model_file = parts
+
         label = "best (eval)" if model_file == "best_model.zip" else model_file.replace(".zip", "")
         runs.setdefault(run_name, []).append({
             "label": label,
