@@ -13,6 +13,21 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# 프로젝트 루트의 .env 파일 자동 로드
+def _load_dotenv():
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if not env_file.exists():
+        return
+    for line in env_file.read_text().splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        if key and key not in os.environ:
+            os.environ[key] = value
+
+_load_dotenv()
+
 import numpy as np
 import torch
 from sb3_contrib import MaskablePPO
@@ -178,6 +193,34 @@ def main():
     print(f"Best model          -> {model_dir / 'best'}")
 
     _save_training_record(args, run_name, model, reward_cfg, final_path, model_dir)
+    _upload_to_hf(run_name, model_dir)
+
+
+def _upload_to_hf(run_name: str, model_dir: Path) -> None:
+    """학습 완료 후 HF Hub에 모델 자동 업로드. HF_REPO_ID 환경변수가 없으면 스킵."""
+    repo_id = os.getenv("HF_REPO_ID")
+    if not repo_id:
+        return
+
+    try:
+        from huggingface_hub import HfApi
+    except ImportError:
+        print("huggingface_hub 미설치 — HF 업로드 스킵")
+        return
+
+    api = HfApi(token=os.getenv("HF_TOKEN"))
+    targets = [
+        (model_dir / "best" / "best_model.zip", f"{run_name}/best_model.zip"),
+        (model_dir / "final.zip",               f"{run_name}/final.zip"),
+    ]
+    for src, dest in targets:
+        if not src.exists():
+            continue
+        print(f"HF Hub 업로드 중: {dest} ...")
+        api.upload_file(path_or_fileobj=str(src), path_in_repo=dest, repo_id=repo_id)
+        print(f"  완료: https://huggingface.co/{repo_id}/blob/main/{dest}")
+
+    print(f"Railway /models 엔드포인트에서 바로 확인 가능합니다.")
 
 
 def _save_training_record(args, run_name, model, reward_cfg, final_path, model_dir):
