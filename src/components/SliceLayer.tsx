@@ -5,7 +5,7 @@ import { SliceAnimation } from '../types/game'
 
 const TILE_SIZE = 52
 const GAP = 2
-const CELL = TILE_SIZE + GAP
+// const CELL = TILE_SIZE + GAP
 
 // 대각 슬래시 기준선: (0, 75%) → (100%, 25%), 기울기 약 -26.6°
 const CLIP_TOP    = 'polygon(0 0, 100% 0, 100% 25%, 0 75%)'
