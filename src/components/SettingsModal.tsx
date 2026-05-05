@@ -9,11 +9,12 @@ import { SelectionBox, SelectionBoxHandle } from './SelectionBox'
 import { ParticleLayer } from './ParticleLayer'
 import { useDragSelect } from '../hooks/useDragSelect'
 import { normalizeRect, sumRect, isValidSelection, clearRect } from '../utils/gameLogic'
-import { Board, SelectionRect, Particle } from '../types/game'
+import { Board, SelectionRect, Particle, SliceAnimation } from '../types/game'
 import { buildParticles } from '../store/gameStore'
 import { useAuthStore } from '../store/authStore'
 import { generateBoardWithSize } from '../utils/boardGenerator'
-import { playPopSound } from '../utils/sound'
+import { playPopSound, playSwordSlashSound } from '../utils/sound'
+import { SliceLayer } from './SliceLayer'
 
 const PREVIEW_COLS = 6
 const PREVIEW_ROWS = 10
@@ -41,6 +42,7 @@ export function SettingsModal({ onClose }: Props) {
     showDragSelectionRangeColor,
     devMode,
     soundEnabled,
+    clearEffect,
     setTheme,
     setTileShape,
     setTileColor,
@@ -51,18 +53,21 @@ export function SettingsModal({ onClose }: Props) {
     setShowDragSelectionRangeColor,
     setDevMode,
     setSoundEnabled,
+    setClearEffect,
   } = useThemeStore()
 
   const { user } = useAuthStore()
   const [settingsTab, setSettingsTab] = useState<'decor' | 'feature' | 'dev'>('decor')
   const [previewBoard, setPreviewBoard] = useState<Board>(generatePreviewBoard)
   const [previewParticles, setPreviewParticles] = useState<Particle[]>([])
+  const [previewSlices, setPreviewSlices] = useState<SliceAnimation[]>([])
   const previewRef = useRef<HTMLDivElement>(null)
   const selRef = useRef<SelectionBoxHandle>(null)
 
   const resetPreviewBoard = useCallback(() => {
     selRef.current?.hide()
     setPreviewParticles([])
+    setPreviewSlices([])
     setPreviewBoard(generatePreviewBoard())
   }, [])
 
@@ -82,14 +87,33 @@ export function SettingsModal({ onClose }: Props) {
     if (!isValidSelection(previewBoard, rect)) return
     const { newBoard, cleared } = clearRect(previewBoard, rect)
     setPreviewBoard(newBoard as Board)
-    const [particles, duration] = buildParticles(cleared, false)
-    const tier = particles[0]?.tier
-    if (soundEnabled && tier) playPopSound(tier)
-    setPreviewParticles(prev => [...prev, ...particles])
-    setTimeout(() => {
-      setPreviewParticles(prev => prev.filter(p => !particles.some(np => np.id === p.id)))
-    }, duration + 400)
-  }, [previewBoard, soundEnabled])
+
+    const count = cleared.length
+    const tier = (count >= 4 ? 'big' : count >= 3 ? 'combo' : 'normal') as 'big' | 'combo' | 'normal'
+
+    if (clearEffect === 'sword') {
+      if (soundEnabled) playSwordSlashSound(tier as 'big' | 'combo' | 'normal')
+      const ts = Date.now()
+      const newSlices: SliceAnimation[] = cleared.map((cell, i) => ({
+        id: `preview-slice-${ts}-${i}`,
+        row: cell.row,
+        col: cell.col,
+        value: cell.value,
+      }))
+      setPreviewSlices(prev => [...prev, ...newSlices])
+      setTimeout(() => {
+        setPreviewSlices(prev => prev.filter(s => !newSlices.some(ns => ns.id === s.id)))
+      }, 600)
+    } else {
+      const [particles, duration] = buildParticles(cleared, false)
+      const particleTier = particles[0]?.tier
+      if (soundEnabled && particleTier) playPopSound(particleTier)
+      setPreviewParticles(prev => [...prev, ...particles])
+      setTimeout(() => {
+        setPreviewParticles(prev => prev.filter(p => !particles.some(np => np.id === p.id)))
+      }, duration + 400)
+    }
+  }, [previewBoard, soundEnabled, clearEffect])
 
   const onPreviewCancel = useCallback(() => selRef.current?.hide(), [])
 
@@ -199,6 +223,11 @@ export function SettingsModal({ onClose }: Props) {
                 tileSize={TILE_S}
                 gap={GAP_S}
               />
+              <SliceLayer
+                sliceAnimations={previewSlices}
+                tileSize={TILE_S}
+                gap={GAP_S}
+              />
             </div>
           </div>
 
@@ -259,6 +288,19 @@ export function SettingsModal({ onClose }: Props) {
                     />
                   ))}
                 </div>
+              </div>
+
+              {/* 타일 제거 이펙트 */}
+              <div>
+                <div className="text-xs text-gray-400 uppercase tracking-widest font-semibold mb-2">타일 제거 이펙트</div>
+                <SegmentedControl
+                  options={[
+                    { value: 'particles', label: '✨ 파티클' },
+                    { value: 'sword',     label: '⚔️ 칼 베기' },
+                  ]}
+                  value={clearEffect}
+                  onChange={v => setClearEffect(v as 'particles' | 'sword')}
+                />
               </div>
 
             </>}

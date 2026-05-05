@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import {
-  Theme, TileShape, TileColorId,
-  DEFAULT_THEME, DEFAULT_SHAPE, DEFAULT_COLOR, TILE_COLORS,
+  Theme, TileShape, TileColorId, ClearEffect,
+  DEFAULT_THEME, DEFAULT_SHAPE, DEFAULT_COLOR, DEFAULT_EFFECT, TILE_COLORS,
 } from '../theme/tokens'
 import { DIFFICULTY_CONFIG, isValidDifficulty } from '../config/difficultyConfig'
 import { upsertUserSettings } from '../lib/supabase'
@@ -17,6 +17,7 @@ interface ThemeState {
   showDragSelectionRangeColor: boolean
   devMode: boolean
   soundEnabled: boolean
+  clearEffect: ClearEffect
   setTheme: (t: Theme) => void
   setTileShape: (s: TileShape) => void
   setTileColor: (id: TileColorId) => void
@@ -27,16 +28,18 @@ interface ThemeState {
   setShowDragSelectionRangeColor: (v: boolean) => void
   setDevMode: (v: boolean) => void
   setSoundEnabled: (v: boolean) => void
+  setClearEffect: (v: ClearEffect) => void
   applySettings: (s: Record<string, unknown>) => void
   reloadFromLocal: () => void
 }
 
 const KEY = 'applebox_theme'
 
-type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDifficulty' | 'soloBoardDifficulty' | 'showDragSelectionSum' | 'showDragSelectionRangeColor' | 'devMode' | 'soundEnabled'>
+type Saved = Pick<ThemeState, 'theme' | 'tileShape' | 'tileColorId' | 'showHintCount' | 'showDifficulty' | 'soloBoardDifficulty' | 'showDragSelectionSum' | 'showDragSelectionRangeColor' | 'devMode' | 'soundEnabled' | 'clearEffect'>
 
 const THEMES: Theme[] = ['light', 'dark']
 const TILE_SHAPES: TileShape[] = ['apple', 'circle', 'square', '8bit']
+const CLEAR_EFFECTS: ClearEffect[] = ['particles', 'sword']
 
 function validate(saved: Record<string, unknown>): Partial<Saved> {
   const result: Partial<Saved> = {}
@@ -50,6 +53,7 @@ function validate(saved: Record<string, unknown>): Partial<Saved> {
   if (typeof saved.showDragSelectionRangeColor === 'boolean') result.showDragSelectionRangeColor = saved.showDragSelectionRangeColor
   if (typeof saved.devMode === 'boolean') result.devMode = saved.devMode
   if (typeof saved.soundEnabled === 'boolean') result.soundEnabled = saved.soundEnabled
+  if (CLEAR_EFFECTS.includes(saved.clearEffect as ClearEffect)) result.clearEffect = saved.clearEffect as ClearEffect
   return result
 }
 
@@ -81,6 +85,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   showDragSelectionRangeColor: true,
   devMode: false,
   soundEnabled: true,
+  clearEffect: DEFAULT_EFFECT,
   ...load(),
 
   setTheme:                       (theme)                        => { set({ theme });                        save({ theme }) },
@@ -93,6 +98,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
   setShowDragSelectionRangeColor: (showDragSelectionRangeColor)  => { set({ showDragSelectionRangeColor });  save({ showDragSelectionRangeColor }) },
   setDevMode:                     (devMode)                      => { set({ devMode });                      save({ devMode }) },
   setSoundEnabled:                (soundEnabled)                 => { set({ soundEnabled });                 save({ soundEnabled }) },
+  setClearEffect:                 (clearEffect)                  => { set({ clearEffect });                  save({ clearEffect }) },
 
   applySettings: (s) => {
     set(validate(s))

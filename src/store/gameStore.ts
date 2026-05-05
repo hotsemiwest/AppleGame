@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import {
-  Board, GamePhase, GameMode, Particle, ParticleTier, ScorePopup,
+  Board, GamePhase, GameMode, Particle, ParticleTier, ScorePopup, SliceAnimation,
   SelectionRect, CellRef, GAME_DURATION, TIME_ATTACK_TARGET,
 } from '../types/game'
 import { PARTICLE_COLORS } from '../theme/tokens'
 import { generateBoardForDifficulty, getBoardDifficulty } from '../utils/boardGenerator'
 import { isValidSelection, clearRect, hasAnySolution } from '../utils/gameLogic'
 import { useThemeStore } from './themeStore'
-import { playPopSound } from '../utils/sound'
+import { playPopSound, playSwordSlashSound } from '../utils/sound'
 import { AI_API_BASE, aiHeaders } from '../lib/aiApi'
 
 const PERSONAL_BEST_KEY = 'personalBestScore'
@@ -136,6 +136,7 @@ interface GameState {
   boardDifficulty: number | null
   particles: Particle[]
   scorePopups: ScorePopup[]
+  sliceAnimations: SliceAnimation[]
   isNewRecord: boolean
 
   startGame: () => void
@@ -177,6 +178,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   boardDifficulty: null,
   particles: [],
   scorePopups: [],
+  sliceAnimations: [],
   isNewRecord: false,
 
   startGame: () => {
@@ -204,6 +206,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       boardDifficulty,
       particles: [],
       scorePopups: [],
+      sliceAnimations: [],
       gamePhase: 'playing',
       isNewRecord: false,
       isAIGame: false,
@@ -224,7 +227,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   goHome: () => {
-    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [], aiSolving: false, aiWaiting: false, aiMoveProgress: null, isAIGame: false })
+    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [], sliceAnimations: [], aiSolving: false, aiWaiting: false, aiMoveProgress: null, isAIGame: false })
   },
 
   endGame: () => {
@@ -277,10 +280,18 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     const count = cleared.length
     const tier = getTier(count)
-    if (useThemeStore.getState().soundEnabled) playPopSound(tier)
+    const themeState = useThemeStore.getState()
+    const { soundEnabled, clearEffect } = themeState
 
-    const [newParticles, duration] = buildParticles(cleared, false)
+    if (soundEnabled) {
+      if (clearEffect === 'sword') playSwordSlashSound(tier)
+      else playPopSound(tier)
+    }
+
     const ts = Date.now()
+    const newScore = score + count
+
+    // 공통: combo/big 스코어 팝업
     const newPopups: ScorePopup[] = []
     if (tier !== 'normal') {
       const rows = cleared.map(c => c.row)
@@ -294,24 +305,44 @@ export const useGameStore = create<GameState>((set, get) => ({
       })
     }
 
-    const newScore = score + count
-
-    // Phase 1 (this frame): particles + score — lightweight render, canvas animation starts immediately
-    set(state => ({
-      score: newScore,
-      particles: [...state.particles, ...newParticles],
-      scorePopups: [...state.scorePopups, ...newPopups],
-    }))
-
-    // Particle cleanup
-    setTimeout(() => {
-      const ids = new Set(newParticles.map(p => p.id))
-      const popupIds = new Set(newPopups.map(p => p.id))
-      set(state => ({
-        particles: state.particles.filter(p => !ids.has(p.id)),
-        scorePopups: state.scorePopups.filter(p => !popupIds.has(p.id)),
+    if (clearEffect === 'sword') {
+      // 칼 이펙트: 타일 슬라이스 애니메이션
+      const newSlices: SliceAnimation[] = cleared.map((cell, i) => ({
+        id: `slice-${ts}-${i}`,
+        row: cell.row,
+        col: cell.col,
+        value: cell.value,
       }))
-    }, duration + 400)
+      set(state => ({
+        score: newScore,
+        sliceAnimations: [...state.sliceAnimations, ...newSlices],
+        scorePopups: [...state.scorePopups, ...newPopups],
+      }))
+      setTimeout(() => {
+        const ids = new Set(newSlices.map(s => s.id))
+        const popupIds = new Set(newPopups.map(p => p.id))
+        set(state => ({
+          sliceAnimations: state.sliceAnimations.filter(s => !ids.has(s.id)),
+          scorePopups: state.scorePopups.filter(p => !popupIds.has(p.id)),
+        }))
+      }, 600)
+    } else {
+      // 파티클 이펙트
+      const [newParticles, duration] = buildParticles(cleared, false)
+      set(state => ({
+        score: newScore,
+        particles: [...state.particles, ...newParticles],
+        scorePopups: [...state.scorePopups, ...newPopups],
+      }))
+      setTimeout(() => {
+        const ids = new Set(newParticles.map(p => p.id))
+        const popupIds = new Set(newPopups.map(p => p.id))
+        set(state => ({
+          particles: state.particles.filter(p => !ids.has(p.id)),
+          scorePopups: state.scorePopups.filter(p => !popupIds.has(p.id)),
+        }))
+      }, duration + 400)
+    }
 
     // Phase 2 (next task): board update — heavy 170-tile reconciliation runs after canvas gets first frame
     setTimeout(() => {

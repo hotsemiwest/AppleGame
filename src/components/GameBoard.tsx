@@ -7,6 +7,7 @@ import { normalizeRect, sumRect } from '../utils/gameLogic'
 import { Tile } from './Tile'
 import { SelectionBox, SelectionBoxHandle } from './SelectionBox'
 import { ParticleLayer } from './ParticleLayer'
+import { SliceLayer } from './SliceLayer'
 import { COLS, SelectionRect } from '../types/game'
 
 const TILE_SIZE = 52
@@ -80,6 +81,7 @@ export function GameBoard() {
           showRangeColor={showDragSelectionRangeColor}
         />
         <ParticleLayer />
+        <SliceLayer />
       </div>
     </div>
   )

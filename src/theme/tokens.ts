@@ -3,6 +3,8 @@
 export type TileColorId = 'red' | 'crimson' | 'green' | 'forest' | 'salmon' | 'olive'
 export type TileShape = 'apple' | 'circle' | 'square' | '8bit'
 export type Theme = 'light' | 'dark'
+export type ClearEffect = 'particles' | 'sword'
+export const DEFAULT_EFFECT: ClearEffect = 'particles'
 
 export interface TileColorDef {
   id: TileColorId

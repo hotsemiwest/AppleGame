@@ -90,6 +90,59 @@ export function playCountdownSound(_count: number) {
   })
 }
 
+export function playSwordSlashSound(tier: ParticleTier) {
+  withCtx(ctx => {
+    const now = ctx.currentTime
+    const vol = tier === 'big' ? 0.52 : tier === 'combo' ? 0.44 : 0.36
+
+    // 칼날 휘두르는 whoosh: 고음→저음 sawtooth 스윕
+    const whoosh = ctx.createOscillator()
+    const whooshFlt = ctx.createBiquadFilter()
+    const whooshGain = ctx.createGain()
+    whoosh.type = 'sawtooth'
+    whoosh.frequency.setValueAtTime(1300, now)
+    whoosh.frequency.exponentialRampToValueAtTime(160, now + 0.12)
+    whooshFlt.type = 'bandpass'
+    whooshFlt.frequency.value = 850
+    whooshFlt.Q.value = 1.8
+    whooshGain.gain.setValueAtTime(vol, now)
+    whooshGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14)
+    whoosh.connect(whooshFlt)
+    whooshFlt.connect(whooshGain)
+    whooshGain.connect(ctx.destination)
+    whoosh.start(now)
+    whoosh.stop(now + 0.16)
+
+    // 충격음: 둔탁한 square wave 하강
+    const thud = ctx.createOscillator()
+    const thudGain = ctx.createGain()
+    thud.type = 'square'
+    thud.frequency.setValueAtTime(tier === 'big' ? 190 : 130, now + 0.09)
+    thud.frequency.exponentialRampToValueAtTime(48, now + 0.30)
+    thudGain.gain.setValueAtTime(vol * 0.55, now + 0.09)
+    thudGain.gain.exponentialRampToValueAtTime(0.001, now + 0.32)
+    thud.connect(thudGain)
+    thudGain.connect(ctx.destination)
+    thud.start(now + 0.09)
+    thud.stop(now + 0.34)
+
+    // combo/big: 금속 울림 shimmer
+    if (tier !== 'normal') {
+      const shimmer = ctx.createOscillator()
+      const shimmerGain = ctx.createGain()
+      shimmer.type = 'sine'
+      shimmer.frequency.value = tier === 'big' ? 3600 : 2900
+      shimmerGain.gain.setValueAtTime(0, now)
+      shimmerGain.gain.linearRampToValueAtTime(vol * 0.18, now + 0.05)
+      shimmerGain.gain.exponentialRampToValueAtTime(0.001, now + 0.25)
+      shimmer.connect(shimmerGain)
+      shimmerGain.connect(ctx.destination)
+      shimmer.start(now)
+      shimmer.stop(now + 0.28)
+    }
+  })
+}
+
 export function playPopSound(tier: ParticleTier) {
   try {
     if (tier === 'big') {

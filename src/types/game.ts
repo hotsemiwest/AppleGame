@@ -61,6 +61,13 @@ export interface CellRef {
   value: number
 }
 
+export interface SliceAnimation {
+  id: string
+  row: number
+  col: number
+  value: number
+}
+
 export const ROWS = 10
 export const COLS = 17
 export const GAME_DURATION = 120
