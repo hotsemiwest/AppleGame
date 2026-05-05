@@ -180,7 +180,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   isNewRecord: false,
 
   startGame: () => {
-    set({ gamePhase: 'countdown' })
+    set({ gamePhase: 'countdown', aiSolving: false, aiWaiting: false, aiMoveProgress: null, isAIGame: false })
   },
 
   startScoreAttack: () => {

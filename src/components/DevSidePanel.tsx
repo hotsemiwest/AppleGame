@@ -4,6 +4,7 @@ import { useThemeStore } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
 import { countSolutions } from '../utils/gameLogic'
 import { C } from '../theme/tokens'
+import { StyledSelect } from './StyledSelect'
 import { AI_API_BASE } from '../lib/aiApi'
 
 type ModelEntry = { label: string; path: string }
@@ -188,7 +189,7 @@ export function DevSidePanel() {
           ].map(({ label, value }) => (
             <div
               key={label}
-              className="rounded-lg px-2 py-2 text-center"
+              className="rounded-lg px-2 pt-3 pb-2 text-center"
               style={{ background: C.surfaceRaised, border: `1px solid ${C.borderFaint}` }}
             >
               <div className="text-xs" style={{ color: C.textSub }}>{label}</div>
@@ -214,8 +215,11 @@ export function DevSidePanel() {
 
       <Divider />
 
+      {/* AI 데모 섹션 */}
+      <div className="flex flex-col gap-3">
+
       {/* AI 데모 헤더 — 라벨 + 연결 상태 + 새로고침 */}
-      <div className="flex items-center gap-2 mb-1.5">
+      <div className="flex items-center gap-2">
         <Label>AI 데모</Label>
         <div className="ml-auto flex items-center gap-1.5">
           <div style={{
@@ -234,78 +238,45 @@ export function DevSidePanel() {
             onClick={fetchModels}
             disabled={modelsLoading}
             title="새로고침"
-            className="rounded px-1.5 py-0.5 text-xs transition-all active:scale-95 disabled:opacity-40"
-            style={{ color: C.textSub, background: C.surfaceRaised, border: `1px solid ${C.borderFaint}` }}
+            className="rounded-lg text-xs transition-all active:scale-95 disabled:opacity-40 flex items-center justify-center"
+            style={{ color: C.textSub, background: C.surfaceRaised, border: `1px solid ${C.borderFaint}`, width: 24, height: 24, flexShrink: 0, paddingTop: 1 }}
           >
             {modelsLoading ? '…' : '↺'}
           </button>
         </div>
       </div>
 
-      {/* 모델 선택 카드 */}
-      <div style={{
-        borderRadius: 10,
-        border: `1px solid ${C.borderFaint}`,
-        overflow: 'hidden',
-        opacity: modelRuns.length === 0 ? 0.5 : 1,
-        transition: 'opacity 0.2s',
-      }}>
-        {/* 런 선택 */}
-        <div style={{ padding: '7px 10px', borderBottom: `1px solid ${C.borderFaint}`, background: C.surfaceRaised }}>
-          <div className="text-xs mb-1" style={{ color: C.textSub, fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>런</div>
-          <select
-            value={selectedRun}
-            onChange={e => {
-              const run = modelRuns.find(r => r.name === e.target.value)
-              setSelectedRun(e.target.value)
-              if (run?.models.length) setModelPath(run.models[0].path)
-            }}
-            disabled={modelsLoading || modelRuns.length === 0}
-            className="w-full text-xs"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: modelRuns.length === 0 ? C.textSub : C.textPrimary,
-              outline: 'none',
-              padding: 0,
-              fontWeight: 500,
-            }}
-          >
-            {modelRuns.length === 0
-              ? <option value="">서버 미연결</option>
-              : modelRuns.map(r => (
-                  <option key={r.name} value={r.name}>{formatRunName(r.name)}</option>
-                ))
-            }
-          </select>
-        </div>
+      <StyledSelect
+        label="런"
+        value={selectedRun}
+        onChange={v => {
+          const run = modelRuns.find(r => r.name === v)
+          setSelectedRun(v)
+          if (run?.models.length) setModelPath(run.models[0].path)
+        }}
+        options={
+          modelRuns.length === 0
+            ? [{ value: '', label: '서버 미연결' }]
+            : modelRuns.map(r => ({ value: r.name, label: formatRunName(r.name) }))
+        }
+        disabled={modelsLoading || modelRuns.length === 0}
+        dimmed={modelRuns.length === 0}
+      />
 
-        {/* 모델 선택 */}
-        <div style={{ padding: '7px 10px', background: C.surfaceRaised }}>
-          <div className="text-xs mb-1" style={{ color: C.textSub, fontSize: 10, fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>모델</div>
-          <select
-            value={modelPath}
-            onChange={e => setModelPath(e.target.value)}
-            disabled={modelsLoading || modelRuns.length === 0}
-            className="w-full text-xs"
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: modelRuns.length === 0 ? C.textSub : C.textPrimary,
-              outline: 'none',
-              padding: 0,
-              fontWeight: 500,
-            }}
-          >
-            {(modelRuns.find(r => r.name === selectedRun)?.models ?? []).map(m => (
-              <option key={m.path} value={m.path}>{m.label}</option>
-            ))}
-          </select>
-        </div>
-      </div>
+      <StyledSelect
+        label="모델"
+        value={modelPath}
+        onChange={setModelPath}
+        options={(modelRuns.find(r => r.name === selectedRun)?.models ?? []).map(m => ({
+          value: m.path,
+          label: m.label,
+        }))}
+        disabled={modelsLoading || modelRuns.length === 0}
+        dimmed={modelRuns.length === 0}
+      />
 
       {/* 실행/중지 버튼 */}
-      <div className="mt-2">
+      <div>
         {aiSolving ? (
           <button
             onClick={stopAISolver}
@@ -342,26 +313,26 @@ export function DevSidePanel() {
 
       {/* 안내 / 에러 */}
       {!isPlaying && (
-        <div className="text-xs mt-1" style={{ color: C.textSub }}>게임을 시작한 뒤 실행하세요.</div>
+        <div className="text-xs" style={{ color: C.textSub }}>게임을 시작한 뒤 실행하세요.</div>
       )}
       {aiError && (
         <div
-          className="rounded-lg px-3 py-2 text-xs break-all mt-1"
+          className="rounded-lg px-3 py-2 text-xs break-all"
           style={{ background: '#ef444415', border: '1px solid #ef444440', color: '#ef4444' }}
         >
           {aiError}
         </div>
       )}
-
-      {/* fetch 에러 */}
       {fetchError && (
         <div
-          className="rounded-lg px-3 py-2 text-xs break-all mt-1"
+          className="rounded-lg px-3 py-2 text-xs break-all"
           style={{ background: '#f59e0b15', border: '1px solid #f59e0b40', color: '#f59e0b' }}
         >
           {fetchError}
         </div>
       )}
+
+      </div>{/* /AI 데모 섹션 */}
     </>
   )
 
