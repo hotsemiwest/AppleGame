@@ -5,6 +5,7 @@ import { useMultiStore } from '../store/multiStore'
 import { useThemeStore } from '../store/themeStore'
 import { BOARD_BG, C, G } from '../theme/tokens'
 import { AuthModal } from './AuthModal'
+import { unlockAudio } from '../utils/sound'
 
 const BOARD_HEIGHT = 538
 
@@ -101,13 +102,13 @@ export function StartBoard() {
           {/* 혼자 하기 */}
           <div className="flex gap-2">
             <button
-              onClick={startScoreAttack}
+              onClick={() => { unlockAudio(); startScoreAttack() }}
               className="flex-1 py-4 rounded-2xl text-lg font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg shadow-green-500/20"
             >
               ⏱️ 스코어 어택
             </button>
             <button
-              onClick={startTimeAttack}
+              onClick={() => { unlockAudio(); startTimeAttack() }}
               className="flex-1 py-4 rounded-2xl text-lg font-bold text-white transition-all active:scale-95 shadow-lg"
               style={{ background: `linear-gradient(135deg, ${C.orange}, ${C.amber})` }}
             >

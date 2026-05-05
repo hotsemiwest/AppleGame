@@ -7,6 +7,7 @@ import { C } from '../theme/tokens'
 import { AuthModal } from './AuthModal'
 import { ScoreChart, HistoryEntry } from './ScoreChart'
 import { formatTime } from '../utils/gameLogic'
+import { unlockAudio } from '../utils/sound'
 
 type Phase = 'submitting' | 'leaderboard' | 'guest'
 
@@ -204,7 +205,7 @@ export function GameOverModal() {
               🏠 홈
             </button>
             <button
-              onClick={startGame}
+              onClick={() => { unlockAudio(); startGame() }}
               className="flex-1 py-3.5 rounded-2xl text-base font-bold text-white bg-gradient-to-r from-green-500 to-emerald-600 transition-all active:scale-95 shadow-lg"
             >
               다시 시작

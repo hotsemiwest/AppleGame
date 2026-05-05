@@ -7,12 +7,18 @@ function getCtx(): AudioContext {
   return _ctx
 }
 
+// 버튼 클릭 등 user gesture 핸들러에서 동기적으로 호출 — context를 미리 unlock
+export function unlockAudio() {
+  const ctx = getCtx()
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+}
+
 function withCtx(fn: (ctx: AudioContext) => void) {
   const ctx = getCtx()
-  if (ctx.state === 'suspended') {
-    ctx.resume().then(() => fn(ctx)).catch(() => {})
-  } else {
+  if (ctx.state === 'running') {
     fn(ctx)
+  } else {
+    ctx.resume().then(() => fn(ctx)).catch(() => {})
   }
 }
 

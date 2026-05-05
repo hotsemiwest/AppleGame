@@ -12,6 +12,7 @@ import { SettingsButton } from './SettingsButton'
 import { C, G } from '../theme/tokens'
 import { SegmentedControl } from './SegmentedControl'
 import { getDifficultyStarCount } from '../config/difficultyConfig'
+import { unlockAudio } from '../utils/sound'
 
 export function Header() {
   const score          = useGameStore(s => s.score)
@@ -202,7 +203,7 @@ export function Header() {
                   🏠 나가기
                 </button>
                 <button
-                  onClick={startGame}
+                  onClick={() => { unlockAudio(); startGame() }}
                   className="px-3 py-2 rounded-lg text-sm font-semibold transition-all active:scale-95"
                   style={{ background: C.surfaceRaised, color: C.textSub, border: `1px solid ${C.borderGhost}` }}
                 >
