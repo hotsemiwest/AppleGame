@@ -319,7 +319,7 @@ export function DevSidePanel() {
                 ? `⬇ 모델 로드 중... (${elapsedSec}s)`
                 : `⬇ 다운로드 중... (${elapsedSec}s)`
             : aiMoveProgress
-              ? `🤖 ${aiMoveProgress.current} / ${aiMoveProgress.total} 실행 중`
+              ? `🤖 실행 중...`
               : '⏹ 중지'
           }
           </button>
