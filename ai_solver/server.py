@@ -155,13 +155,24 @@ async def lifespan(app: FastAPI):
         total = sum(len(r["models"]) for r in runs)
         print(f"[server] HF Hub ({repo_id}): {len(runs)}개 런, {total}개 모델")
 
+        # 모든 HF 모델 미리 다운로드 (메모리 로드 제외)
+        for run in runs:
+            for entry in run["models"]:
+                hf_path = entry["path"]
+                try:
+                    _download_hf_model(hf_path)
+                except Exception as e:
+                    print(f"[server] 사전 다운로드 실패 ({hf_path}): {e}")
+
+    # AI_MODEL_PATH 지정 시 메모리에도 로드
     preload_path = os.getenv("AI_MODEL_PATH")
     if preload_path:
         try:
+            t0 = time.time()
             print(f"[server] 모델 사전 로드 중: {preload_path}")
             resolved = _resolve_path(preload_path)
             _load_model(resolved)
-            print(f"[server] 모델 사전 로드 완료: {preload_path}")
+            print(f"[server] 모델 사전 로드 완료 ({time.time()-t0:.1f}s): {preload_path}")
         except Exception as e:
             print(f"[server] 모델 사전 로드 실패 (요청 시 재시도): {e}")
 
@@ -280,12 +291,15 @@ def solve(req: SolveRequest, request: Request, _rl: None = Depends(_check_rate_l
     if not raw_path.startswith("hf://"):
         _validate_local_path(raw_path)
 
+    t_start = time.time()
     try:
         model_path = _resolve_path(raw_path)
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 다운로드 실패: {e}")
+    t_resolved = time.time()
+    print(f"[server] 경로 해석: {t_resolved - t_start:.2f}s — {raw_path}")
 
     if not Path(model_path).exists():
         raise HTTPException(status_code=404, detail="모델 파일을 찾을 수 없음")
@@ -294,6 +308,8 @@ def solve(req: SolveRequest, request: Request, _rl: None = Depends(_check_rate_l
         model = _load_model(model_path)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"모델 로드 실패: {e}")
+    t_loaded = time.time()
+    print(f"[server] 모델 로드: {t_loaded - t_resolved:.2f}s")
 
     board_np = np.asarray(req.board, dtype=np.int8)
     rows, cols = board_np.shape
@@ -319,9 +335,14 @@ def solve(req: SolveRequest, request: Request, _rl: None = Depends(_check_rate_l
         if terminated:
             break
 
+    t_done = time.time()
+    remaining = int((env.board != 0).sum())
+    print(f"[server] 풀이 완료: {t_done - t_loaded:.2f}s — {len(moves)}개 수, 점수 {env.score}, 잔여 {remaining}")
+    print(f"[server] /solve 총 소요: {t_done - t_start:.2f}s")
+
     return SolveResponse(
         moves=moves,
         score=env.score,
-        remaining=int((env.board != 0).sum()),
+        remaining=remaining,
         total_moves=len(moves),
     )

@@ -154,6 +154,7 @@ interface GameState {
   tick: () => void
   aiSolving: boolean
   aiWaiting: boolean  // 서버 응답 대기 중 (모델 다운로드 포함)
+  aiMoveProgress: { current: number; total: number } | null
   isAIGame: boolean
   runAISolver: (modelPath: string, moveDelayMs?: number) => Promise<void>
   stopAISolver: () => void
@@ -164,6 +165,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   score: 0,
   aiSolving: false,
   aiWaiting: false,
+  aiMoveProgress: null,
   isAIGame: false,
   personalBest: loadPersonalBest(),
   personalBestTime: loadPersonalBestTime(),
@@ -209,8 +211,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   syncTime: () => {
-    const { gameStartedAt, gameMode, gamePhase } = get()
-    if (gamePhase !== 'playing' || !gameStartedAt) return
+    const { gameStartedAt, gameMode, gamePhase, isAIGame } = get()
+    if (gamePhase !== 'playing' || !gameStartedAt || isAIGame) return
     const elapsed = Math.floor((Date.now() - gameStartedAt) / 1000)
     if (gameMode === 'score') {
       const newTimeLeft = Math.max(0, GAME_DURATION - elapsed)
@@ -222,7 +224,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   goHome: () => {
-    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [], aiSolving: false })
+    set({ gamePhase: 'start', boardDifficulty: null, particles: [], scorePopups: [], aiSolving: false, aiWaiting: false, aiMoveProgress: null, isAIGame: false })
   },
 
   endGame: () => {
@@ -370,9 +372,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   runAISolver: async (modelPath: string, moveDelayMs = 400) => {
     if (get().aiSolving) return
     if (get().gamePhase !== 'playing') throw new Error('게임을 먼저 시작하세요.')
-    set({ aiSolving: true, aiWaiting: true, isAIGame: true })
+    set({ aiSolving: true, aiWaiting: true, isAIGame: true, aiMoveProgress: null })
+
+    console.log(`[AI] 서버 요청 시작 — 모델: ${modelPath}`)
+    const requestStart = Date.now()
 
     let moves: SelectionRect[]
+    let serverScore: number | undefined
+    let serverRemaining: number | undefined
     try {
       const board = get().board
       const numeric = board.map(row => row.map(cell => cell ?? 0))
@@ -395,22 +402,35 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       const data = await resp.json()
       moves = data.moves as SelectionRect[]
+      serverScore = data.score
+      serverRemaining = data.remaining
+      console.log(`[AI] 서버 응답 — ${((Date.now() - requestStart) / 1000).toFixed(1)}s 소요, ${moves.length}개 수, 예상 점수: ${serverScore}, 예상 잔여: ${serverRemaining}`)
     } catch (e) {
-      set({ aiSolving: false, aiWaiting: false })
+      set({ aiSolving: false, aiWaiting: false, aiMoveProgress: null })
       if ((e as Error).name === 'AbortError') throw new Error('서버 응답 시간 초과 (90초). 모델 다운로드 중일 수 있습니다.')
       throw e
     }
 
-    set({ aiWaiting: false })
-    for (const move of moves) {
+    set({ aiWaiting: false, aiMoveProgress: { current: 0, total: moves.length } })
+    console.log(`[AI] 수 재현 시작 — ${moves.length}개`)
+    let rejected = 0
+    for (let i = 0; i < moves.length; i++) {
       if (!get().aiSolving) break
+      set({ aiMoveProgress: { current: i + 1, total: moves.length } })
       await new Promise(r => setTimeout(r, moveDelayMs))
       if (!get().aiSolving) break
+      const move = moves[i]
+      if (!isValidSelection(get().board, move)) {
+        console.warn(`[AI] 수 ${i + 1}/${moves.length} 거부 (보드 불일치):`, move)
+        rejected++
+        continue
+      }
       get().confirmSelection(move)
     }
-    set({ aiSolving: false })
+    console.log(`[AI] 완료 — ${moves.length}개 중 ${moves.length - rejected}개 실행, ${rejected}개 거부`)
+    set({ aiSolving: false, aiMoveProgress: null })
   },
 
-  stopAISolver: () => set({ aiSolving: false, aiWaiting: false }),
+  stopAISolver: () => set({ aiSolving: false, aiWaiting: false, aiMoveProgress: null }),
 
 }))

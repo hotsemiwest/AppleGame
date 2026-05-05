@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useGameStore } from '../store/gameStore'
 import { useThemeStore } from '../store/themeStore'
 import { useAuthStore } from '../store/authStore'
@@ -55,6 +55,7 @@ export function DevSidePanel() {
   const score = useGameStore(s => s.score)
   const aiSolving = useGameStore(s => s.aiSolving)
   const aiWaiting = useGameStore(s => s.aiWaiting)
+  const aiMoveProgress = useGameStore(s => s.aiMoveProgress)
   const runAISolver = useGameStore(s => s.runAISolver)
   const stopAISolver = useGameStore(s => s.stopAISolver)
 
@@ -66,6 +67,21 @@ export function DevSidePanel() {
   const [fetchError, setFetchError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
+  const [elapsedSec, setElapsedSec] = useState(0)
+  const aiStartTimeRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (aiSolving) {
+      if (!aiStartTimeRef.current) aiStartTimeRef.current = Date.now()
+      const id = setInterval(() => {
+        setElapsedSec(Math.floor((Date.now() - aiStartTimeRef.current!) / 1000))
+      }, 1000)
+      return () => clearInterval(id)
+    } else {
+      aiStartTimeRef.current = null
+      setElapsedSec(0)
+    }
+  }, [aiSolving])
 
   const windowWidth = useWindowWidth()
   const isWide = windowWidth >= 1200
@@ -296,7 +312,16 @@ export function DevSidePanel() {
             className="w-full rounded-lg py-2 text-xs font-bold transition-all active:scale-95"
             style={{ background: '#ef444418', border: '1px solid #ef444460', color: '#ef4444' }}
           >
-            {aiWaiting ? '⏳ 서버 응답 대기 중...' : '⏹ 중지'}
+            {aiWaiting
+            ? elapsedSec < 8
+              ? `⏳ 연결 중... (${elapsedSec}s)`
+              : elapsedSec < 35
+                ? `⬇ 모델 로드 중... (${elapsedSec}s)`
+                : `⬇ 다운로드 중... (${elapsedSec}s)`
+            : aiMoveProgress
+              ? `🤖 ${aiMoveProgress.current} / ${aiMoveProgress.total} 실행 중`
+              : '⏹ 중지'
+          }
           </button>
         ) : (
           <button
