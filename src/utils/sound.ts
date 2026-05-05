@@ -7,8 +7,13 @@ function getCtx(): AudioContext {
   return _ctx
 }
 
-function resume(ctx: AudioContext) {
-  if (ctx.state === 'suspended') ctx.resume()
+function withCtx(fn: (ctx: AudioContext) => void) {
+  const ctx = getCtx()
+  if (ctx.state === 'suspended') {
+    ctx.resume().then(() => fn(ctx)).catch(() => {})
+  } else {
+    fn(ctx)
+  }
 }
 
 // "띠" — 아주 짧은 앞꾸밈음
@@ -53,32 +58,30 @@ function ring(ctx: AudioContext, freq: number, vol: number, decay: number, start
 
 // "띠링" = ti(짧음) → ring(울림), 30ms 간격
 function diring(tiFreq: number, ringFreq: number, vol: number, decay: number, offsetMs = 0) {
-  const ctx = getCtx()
-  resume(ctx)
-  const base = ctx.currentTime + offsetMs / 1000
-  ti(ctx, tiFreq, vol * 0.6, base)
-  ring(ctx, ringFreq, vol, decay, base + 0.03)
+  withCtx(ctx => {
+    const base = ctx.currentTime + offsetMs / 1000
+    ti(ctx, tiFreq, vol * 0.6, base)
+    ring(ctx, ringFreq, vol, decay, base + 0.03)
+  })
 }
 
 // 카운트다운 틱: 숫자마다 음높이를 높여서 긴장감 부여
 export function playCountdownSound(_count: number) {
-  const ctx = getCtx()
-  resume(ctx)
-  const now = ctx.currentTime
-  // 3→낮음, 2→중간, 1→높음
-  const freq = 660
-  const vol  = 0.40
-
-  const osc = ctx.createOscillator()
-  const gain = ctx.createGain()
-  osc.type = 'sine'
-  osc.frequency.value = freq
-  gain.gain.setValueAtTime(vol, now)
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
-  osc.connect(gain)
-  gain.connect(ctx.destination)
-  osc.start(now)
-  osc.stop(now + 0.2)
+  withCtx(ctx => {
+    const now = ctx.currentTime
+    const freq = 660
+    const vol  = 0.40
+    const osc = ctx.createOscillator()
+    const gain = ctx.createGain()
+    osc.type = 'sine'
+    osc.frequency.value = freq
+    gain.gain.setValueAtTime(vol, now)
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18)
+    osc.connect(gain)
+    gain.connect(ctx.destination)
+    osc.start(now)
+    osc.stop(now + 0.2)
+  })
 }
 
 export function playPopSound(tier: ParticleTier) {
