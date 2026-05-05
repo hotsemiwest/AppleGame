@@ -129,7 +129,7 @@ export function SettingsModal({ onClose }: Props) {
     >
       <div
         className="rounded-3xl p-6 w-full mx-4 shadow-2xl"
-        style={{ maxWidth: 720, background: C.surface, border: `1px solid ${C.borderStrong}` }}
+        style={{ maxWidth: 760, background: C.surface, border: `1px solid ${C.borderStrong}` }}
         onClick={e => e.stopPropagation()}
       >
         {/* 헤더 */}

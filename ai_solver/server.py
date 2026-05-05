@@ -154,6 +154,17 @@ async def lifespan(app: FastAPI):
         runs = _list_hf_runs(repo_id)
         total = sum(len(r["models"]) for r in runs)
         print(f"[server] HF Hub ({repo_id}): {len(runs)}개 런, {total}개 모델")
+
+    preload_path = os.getenv("AI_MODEL_PATH")
+    if preload_path:
+        try:
+            print(f"[server] 모델 사전 로드 중: {preload_path}")
+            resolved = _resolve_path(preload_path)
+            _load_model(resolved)
+            print(f"[server] 모델 사전 로드 완료: {preload_path}")
+        except Exception as e:
+            print(f"[server] 모델 사전 로드 실패 (요청 시 재시도): {e}")
+
     yield
 
 
