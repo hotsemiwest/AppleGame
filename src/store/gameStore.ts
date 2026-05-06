@@ -214,8 +214,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   syncTime: () => {
-    const { gameStartedAt, gameMode, gamePhase, isAIGame } = get()
-    if (gamePhase !== 'playing' || !gameStartedAt || isAIGame) return
+    const { gameStartedAt, gameMode, gamePhase } = get()
+    if (gamePhase !== 'playing' || !gameStartedAt) return
     const elapsed = Math.floor((Date.now() - gameStartedAt) / 1000)
     if (gameMode === 'score') {
       const newTimeLeft = Math.max(0, GAME_DURATION - elapsed)
