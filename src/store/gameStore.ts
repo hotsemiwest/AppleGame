@@ -400,7 +400,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   tick: () => { get().syncTime() },
 
-  runAISolver: async (modelPath: string, moveDelayMs = 400) => {
+  runAISolver: async (modelPath: string, moveDelayMs = 150) => {
     if (get().aiSolving) return
     if (get().gamePhase !== 'playing') throw new Error('게임을 먼저 시작하세요.')
     set({ aiSolving: true, aiWaiting: true, isAIGame: true, aiMoveProgress: null })
