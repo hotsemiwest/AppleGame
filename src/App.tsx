@@ -13,6 +13,8 @@ import { MultiGame } from './components/MultiGame'
 import { MultiGameOver } from './components/MultiGameOver'
 import { Countdown } from './components/Countdown'
 import { DevSidePanel } from './components/DevSidePanel'
+import { SpeedInsights } from '@vercel/speed-insights/react'
+import { Analytics } from '@vercel/analytics/react'
 
 const BOARD_WIDTH = 916
 
@@ -54,6 +56,8 @@ export default function App() {
 
   return (
     <>
+    <SpeedInsights />
+    <Analytics />
     <ThemeSync />
     <div
       className="min-h-screen flex flex-col items-center justify-center py-6 overflow-x-hidden"
