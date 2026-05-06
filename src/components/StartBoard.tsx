@@ -93,7 +93,7 @@ export function StartBoard() {
         {/* 상단: 타이틀 + 설명 */}
         <div className="text-center w-full max-w-lg">
           <div className="text-5xl mb-4">🍎</div>
-          <h2 className={`text-3xl font-bold mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>AppleBox</h2>
+          <h2 className={`text-3xl font-bold mb-1 ${theme === 'light' ? 'text-gray-900' : 'text-white'}`}>Drag 10</h2>
           <p className="text-gray-400">드래그로 합이 10이 되는 숫자들을 선택하세요</p>
         </div>
 
